@@ -25,14 +25,47 @@ async function handleImport() {
     let pngBlob: Blob | undefined
     if (isPng(buf)) {
       const extracted = extractJsonFromPng(buf)
-      json = extracted.json as CharacterCardV2
       pngBlob = new Blob([buf], { type: 'image/png' })
+      if (extracted.json) {
+        json = extracted.json as CharacterCardV2
+      } else {
+        const bytes = new Uint8Array(buf)
+        const iend = locateIEND(bytes)
+        if (iend === -1) { alert('Invalid PNG'); return }
+        json = JSON.parse(new TextDecoder().decode(bytes.slice(iend))) as CharacterCardV2
+      }
     } else {
       json = JSON.parse(new TextDecoder().decode(buf)) as CharacterCardV2
     }
     if (json.spec !== 'chara_card_v2') {
-      alert('Only V2 character cards are supported')
-      return
+      const root = json as Record<string, unknown>
+      const src = (root.data as Record<string, unknown>) ?? root
+      if (src.name !== undefined || src.description !== undefined) {
+        json = {
+          spec: 'chara_card_v2',
+          spec_version: '2.0',
+          data: {
+            name: '',
+            description: '',
+            personality: '',
+            scenario: '',
+            first_mes: '',
+            mes_example: '',
+            creator_notes: '',
+            system_prompt: '',
+            post_history_instructions: '',
+            alternate_greetings: [],
+            tags: [],
+            creator: '',
+            character_version: '',
+            extensions: {},
+            ...(src as Record<string, unknown>),
+          } as CharacterCardV2['data'],
+        }
+      } else {
+        alert('Unrecognized card format')
+        return
+      }
     }
     const id = await store.addCard(json, pngBlob)
     await store.setActiveCard(id!, json)
@@ -49,6 +82,18 @@ async function selectCard(id: number) {
 
 async function removeCard(id: number) {
   await store.deleteCard(id)
+}
+
+function locateIEND(buf: Uint8Array): number {
+  for (let i = 8; i <= buf.length - 12; i++) {
+    const len = (buf[i] << 24) | (buf[i + 1] << 16) | (buf[i + 2] << 8) | buf[i + 3]
+    if (
+      buf[i + 4] === 73 && buf[i + 5] === 69 && buf[i + 6] === 78 && buf[i + 7] === 68
+    ) {
+      return i + 4 + 4 + len + 4
+    }
+  }
+  return -1
 }
 
 async function newCard() {
