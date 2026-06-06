@@ -1,37 +1,32 @@
 # Changelog
 
-## [0.1.1-alpha] — 2026-06-06
+## [0.1.1] — 2026-06-06
 
 ### Fixed
-- New card now saves to IndexedDB immediately, appears in card list
-- Base Spec form no longer uses VeeValidate for data ownership — binds
-  directly to the store, fixing Add Greeting and Add Lore Book buttons
-  not responding (was caused by `syncToStore` replacing `cardJson.data`
-  with a VeeValidate proxy, breaking nested reactivity)
-- Removed VeeValidate `useField` from all form components; store is now
-  the single source of truth, VeeValidate retained for validation only
-- Auto-save now properly persists edits to IndexedDB. Moved save logic
-  into Pinia store with `flushSave()` and `toPlain()` to strip reactive
-  proxies before IDB write (fixes DataCloneError). Pending changes are
-  flushed before card switching.
-- Card list only reorders on actual edits, not on card switch
-  (`flushSave` skips if no pending save timer; watch filters out
-  card-load triggers via reference equality check)
-- All textareas now auto-grow to fit content (no scrollbar, no resize
-  handle) via `v-grow` directive
-- Extracted EntryCard to separate SFC, fixing runtime template compiler
-  warning when adding lore entries
-- Rearranged BaseSpecForm into three sections: Info (name, creator,
-  version, tags), Character (desc, personality, scenario, creator_notes),
-  Override Prompt (system_prompt, post_history_instructions)
-- Removed first_mes and mes_example from BaseSpecForm; first greeting
-  in GreetingsPanel now syncs with first_mes automatically
-- Removed ExtensionsEditor (extensions preserved on import/export)
-- All editor sections are now collapsible cards with sticky headers
-  and fade animation; split into standalone panel files under
-  src/panels/ (InfoPanel, CharacterPanel, OverridePromptPanel)
-- GreetingsPanel and LoreBookPanel moved from components/ to panels/
-- 8px gap between panels
+- Auto-save now persists edits to IndexedDB (was broken by DataCloneError
+  from Vue reactive proxies; store now strips proxies before IDB write)
+- "New card" now immediately appears in card list
+- Greeting and Lore Book buttons were not responding after card switch
+  (VeeValidate proxy overwriting store data — removed VeeValidate from
+  data ownership, binds form fields directly to the Pinia store)
+- EntryCard extracted to separate SFC (was using runtime template compiler)
+
+### Changed
+- Editor layout: all sections (Info, Character, Override Prompt, Greetings,
+  Lore Book) are collapsible cards with sticky headers and height animation
+- Panels split into standalone files under src/panels/ (previously a single
+  BaseSpecForm component); GreetingsPanel and LoreBookPanel moved there
+- BaseSpecForm reorganized into Info, Character, Override Prompt sections;
+  first_mes merged into first greeting; ExtensionsEditor removed
+- Export bar moved to bottom of editor column (JSON and PNG buttons)
+- Image preview added to Info panel (upload PNG, click to view full size)
+- Info panel layout: image and right content in 1:3 grid, name on own row
+- At least one greeting required (delete disabled when only one remains)
+- Tags and lore keys inputs use local v-model, committed on blur/Enter
+- Comma-separated values (tags, keys) now allow typing commas freely
+- Dark-themed scrollbar styling; scrollbar gutter reserved to prevent
+  layout shift; sidebar scrollbar does not reserve space
+- Collapse/expand state persisted to localStorage across all cards
 
 ## [0.1.0] — 2026-06-06
 
