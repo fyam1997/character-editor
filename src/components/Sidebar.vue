@@ -149,7 +149,7 @@ async function newCard() {
         PNG
       </button>
     </div>
-    <div class="flex-1 overflow-y-auto p-2">
+    <div class="flex-1 overflow-y-auto p-2" style="scrollbar-gutter: auto">
       <div
         v-for="card in store.cards"
         :key="card.id"
