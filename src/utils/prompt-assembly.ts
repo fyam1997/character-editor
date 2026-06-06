@@ -53,15 +53,21 @@ function getLoreEntries(data: CharacterCardV2['data']): { beforeChar: ChatMessag
   return { beforeChar, afterChar }
 }
 
+export interface AssembledResult {
+  messages: ChatMessage[]
+  sessionStart: number
+  sessionCount: number
+}
+
 export function assembleApiMessages(
   cardJson: CharacterCardV2 | null,
   systemPrompts: { mainPrompt: string; auxiliaryPrompt: string; postHistoryPrompt: string },
   sessionMessages: ChatMessage[]
-): ChatMessage[] {
+): AssembledResult {
   const result: ChatMessage[] = []
 
   if (!cardJson) {
-    return sessionMessages.map(m => ({ role: m.role, content: m.content }))
+    return { messages: sessionMessages.map(m => ({ role: m.role, content: m.content })), sessionStart: 0, sessionCount: sessionMessages.length }
   }
 
   const data = cardJson.data
@@ -119,11 +125,14 @@ export function assembleApiMessages(
   // 9. Start new chat
   result.push({ role: 'system', content: '[Start a new Chat]' })
 
+  const sessionStart = result.length
+
   // 10. Chat messages from session - skip old-format system message
   let startIdx = 0
   if (sessionMessages.length > 0 && sessionMessages[0].role === 'system') {
     startIdx = 1
   }
+  const sessionCount = sessionMessages.length - startIdx
   for (let i = startIdx; i < sessionMessages.length; i++) {
     result.push({ ...sessionMessages[i], content: replacePlaceholders(sessionMessages[i].content, charName) })
   }
@@ -134,5 +143,5 @@ export function assembleApiMessages(
     result.push({ role: 'system', content: replacePlaceholders(postContent, charName) })
   }
 
-  return result
+  return { messages: result, sessionStart, sessionCount }
 }

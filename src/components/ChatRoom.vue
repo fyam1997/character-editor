@@ -16,18 +16,18 @@ const sending = ref(false)
 const abortController = ref<AbortController | null>(null)
 const chatEl = ref<HTMLElement | null>(null)
 const showSessions = ref(false)
-const showPrompts = ref(false)
 
 const activeSessionName = computed(() => {
   const s = store.sessions.find((s) => s.id === store.activeSessionId)
   return s?.name ?? ''
 })
 
-const assembledPrompts = computed(() => {
+const emptyInfo = { messages: [] as ChatMessage[], sessionStart: 0, sessionCount: 0 }
+const assembledInfo = computed(() => {
   const sid = store.activeSessionId
-  if (!sid || !store.cardJson) return []
+  if (!sid || !store.cardJson) return emptyInfo
   const s = store.sessions.find((s) => s.id === sid)
-  if (!s) return []
+  if (!s) return emptyInfo
   return assembleApiMessages(store.cardJson, store.systemPrompts, s.messages)
 })
 
@@ -69,7 +69,7 @@ async function sendMessage() {
   const session = store.sessions.find((s) => s.id === store.activeSessionId)
   if (!session) { sending.value = false; return }
 
-  const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages)
+  const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
 
   abortController.value = new AbortController()
   let assistantContent = ''
@@ -101,12 +101,21 @@ async function sendMessage() {
   }
 }
 
-async function deleteMessage(index: number) {
+function isChatMsg(i: number): boolean {
+  const info = assembledInfo.value
+  return i >= info.sessionStart && i < info.sessionStart + info.sessionCount
+}
+
+async function deleteMessage(assembledIdx: number) {
   const sid = store.activeSessionId
   if (sid == null) return
   const session = store.sessions.find((s) => s.id === sid)
   if (!session) return
-  session.messages.splice(index, 1)
+  const sessionIdx = assembledIdx - assembledInfo.value.sessionStart
+  const firstSessionIdx = session.messages[0]?.role === 'system' ? 1 : 0
+  const msgIdx = firstSessionIdx + sessionIdx
+  if (msgIdx < 0 || msgIdx >= session.messages.length) return
+  session.messages.splice(msgIdx, 1)
   session.updatedAt = new Date().toISOString()
   await db.chatSessions.put(session)
 }
@@ -157,36 +166,28 @@ function scrollToBottom() {
       </div>
     </div>
 
-    <div class="flex items-center gap-2 mb-1">
-      <button
-        class="text-xs text-gray-500 hover:text-gray-300 select-none"
-        @click="showPrompts = !showPrompts"
-      >
-        <span class="mr-1">{{ showPrompts ? '▼' : '▶' }}</span>
-        Assembled Prompts ({{ assembledPrompts.length }})
-      </button>
-    </div>
-    <div v-if="showPrompts && assembledPrompts.length > 0" class="mb-2 max-h-60 overflow-y-auto border border-gray-700 rounded bg-gray-900 text-xs">
-      <pre class="p-2 text-gray-300 whitespace-pre-wrap break-words">{{ JSON.stringify(assembledPrompts, null, 2) }}</pre>
-    </div>
-
-    <div ref="chatEl" class="flex-1 overflow-y-auto mb-3 pr-1 flex flex-col" :class="{ 'space-y-3': store.activeMessages.length > 0 }">
-      <template v-if="store.activeMessages.length > 0">
+    <div ref="chatEl" class="flex-1 overflow-y-auto mb-3 pr-1 flex flex-col">
+      <template v-if="assembledInfo.messages.length > 0">
         <div
-          v-for="(msg, i) in store.activeMessages"
+          v-for="(msg, i) in assembledInfo.messages"
           :key="i"
           class="text-xs border rounded px-3 py-2 mt-2"
           :class="{
-            'border-gray-700 bg-gray-900 text-gray-400 border-l-2': msg.role === 'system',
+            'border-gray-700 bg-gray-900 text-gray-400 border-l-2': msg.role === 'system' && !msg.name,
             'border-gray-700 bg-gray-900 text-gray-200 border-l-2 border-l-blue-500': msg.role === 'user',
             'border-gray-700 bg-gray-900 text-green-300 border-l-2 border-l-green-500': msg.role === 'assistant',
+            'border-gray-700 bg-gray-900 text-yellow-200 border-l-2 border-l-yellow-500': msg.name,
           }"
         >
           <div class="flex items-center justify-between mb-0.5">
             <span class="font-bold">
-              {{ msg.role === 'system' ? 'System' : msg.role === 'user' ? 'You' : 'Assistant' }}
+              <template v-if="msg.name">{{ msg.name }}</template>
+              <template v-else-if="msg.role === 'system'">System</template>
+              <template v-else-if="msg.role === 'user'">You</template>
+              <template v-else>Assistant</template>
             </span>
             <button
+              v-if="isChatMsg(i)"
               class="text-xs text-gray-500 hover:text-red-400"
               @click="deleteMessage(i)"
             >✕</button>
