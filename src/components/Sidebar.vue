@@ -51,10 +51,19 @@ async function removeCard(id: number) {
   await store.deleteCard(id)
 }
 
+function prepareExport(): CharacterCardV2 | null {
+  if (!store.cardJson) return null
+  const plain: CharacterCardV2 = JSON.parse(JSON.stringify(store.cardJson))
+  const greetings = plain.data.alternate_greetings
+  plain.data.first_mes = greetings[0] ?? ''
+  plain.data.alternate_greetings = greetings.slice(1)
+  return plain
+}
+
 async function handleExport(type: 'json' | 'png') {
-  if (!store.cardJson) return
+  const json = prepareExport()
+  if (!json) return
   const record = store.cards.find((c) => c.id === store.activeCardId)
-  const json = store.cardJson
   const name = json.data.name || 'character'
   if (type === 'json') {
     const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' })
