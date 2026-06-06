@@ -26,6 +26,12 @@
   Override Prompt (system_prompt, post_history_instructions)
 - Removed first_mes and mes_example from BaseSpecForm; first greeting
   in GreetingsPanel now syncs with first_mes automatically
+- Removed ExtensionsEditor (extensions preserved on import/export)
+- All editor sections are now collapsible cards with sticky headers
+  and fade animation; split into standalone panel files under
+  src/panels/ (InfoPanel, CharacterPanel, OverridePromptPanel)
+- GreetingsPanel and LoreBookPanel moved from components/ to panels/
+- 8px gap between panels
 
 ## [0.1.0] — 2026-06-06
 
