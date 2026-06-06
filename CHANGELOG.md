@@ -9,10 +9,17 @@
 - Non-V2 JSON imports auto-wrap root-level fields into V2 format
 - PNG import/export uses `meta-png` for proper `chara` tEXt chunk
   embedding, falls back to append method for legacy PNGs
+- Chat sessions: persistent per-card in IndexedDB with session
+  dropdown, tick on active session, delete per session
+- Chat messages rendered as cards with role-colored left border
+- Delete button on each chat message and greeting
+- API config persisted to localStorage
 
 ### Fixed
 - Character book entries not read from non-V2 JSON imports
 - PNG import/export not working (was using raw append method)
+- Chat fetch errors now caught and displayed as assistant messages
+  instead of unhandled promise rejections
 
 ## [0.1.1] — 2026-06-06
 
