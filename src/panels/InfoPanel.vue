@@ -5,6 +5,7 @@ import CollapsibleSection from '../components/CollapsibleSection.vue'
 
 const store = useEditorStore()
 const rawTags = ref('')
+const showPreview = ref(false)
 
 const previewUrl = computed(() => {
   if (!store.pngBlob) return ''
@@ -35,15 +36,21 @@ function pickImage() {
 
 <template>
   <CollapsibleSection title="Info" v-if="store.cardJson">
-    <div class="flex gap-4">
-      <div
-        class="w-24 shrink-0 border border-gray-700 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden bg-gray-900 self-stretch"
-        @click="pickImage"
-      >
-        <img v-if="previewUrl" :src="previewUrl" class="w-full h-full object-cover" />
-        <span v-else class="text-2xl text-gray-600">+</span>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="flex flex-col gap-1">
+        <div
+          class="flex-1 border border-gray-700 rounded-lg overflow-hidden bg-gray-900 cursor-pointer flex items-center justify-center"
+          @click="previewUrl ? (showPreview = true) : pickImage()"
+        >
+          <img v-if="previewUrl" :src="previewUrl" class="w-full h-full object-cover" />
+          <span v-else class="text-2xl text-gray-600">+</span>
+        </div>
+        <button
+          class="w-full py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+          @click="pickImage"
+        >Upload</button>
       </div>
-      <div class="flex-1 min-w-0 flex flex-col gap-3">
+      <div class="col-span-2 flex flex-col gap-3">
         <div>
           <label class="text-xs text-gray-400 block mb-1">Name</label>
           <input v-model="store.cardJson.data.name" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200" />
@@ -58,7 +65,7 @@ function pickImage() {
             <input v-model="store.cardJson.data.character_version" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200" />
           </div>
         </div>
-        <div class="mt-3">
+        <div>
           <label class="text-xs text-gray-400 block mb-1">Tags (comma-separated)</label>
           <input
             v-model="rawTags"
@@ -68,11 +75,21 @@ function pickImage() {
             class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
           />
         </div>
+        <div class="flex-1 flex flex-col">
+          <label class="text-xs text-gray-400 block mb-1">Creator Notes</label>
+          <textarea v-model="store.cardJson.data.creator_notes" v-grow class="flex-1 w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-none"></textarea>
+        </div>
       </div>
     </div>
-    <div class="mt-3">
-      <label class="text-xs text-gray-400 block mb-1">Creator Notes</label>
-      <textarea v-model="store.cardJson.data.creator_notes" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
-    </div>
   </CollapsibleSection>
+
+  <Teleport to="body">
+    <div
+      v-if="showPreview && previewUrl"
+      class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-8"
+      @click.self="showPreview = false"
+    >
+      <img :src="previewUrl" class="max-w-full max-h-full object-contain rounded-lg" @click="showPreview = false" />
+    </div>
+  </Teleport>
 </template>
