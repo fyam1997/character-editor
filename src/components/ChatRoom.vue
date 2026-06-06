@@ -5,6 +5,7 @@ import { streamChat } from '../utils/api'
 import { assembleApiMessages } from '../utils/prompt-assembly'
 import type { ChatMessage } from '../types'
 import { db } from '../storage/db'
+import MarkdownField from './MarkdownField.vue'
 
 const props = defineProps<{
   greeting: string
@@ -175,7 +176,7 @@ function scrollToBottom() {
           :class="{
             'border-gray-700 bg-gray-900 text-gray-400 border-l-2': msg.role === 'system' && !msg.name,
             'border-gray-700 bg-gray-900 text-gray-200 border-l-2 border-l-blue-500': msg.role === 'user',
-            'border-gray-700 bg-gray-900 text-green-300 border-l-2 border-l-green-500': msg.role === 'assistant',
+            'border-gray-700 bg-gray-900 text-gray-200 border-l-2 border-l-green-500': msg.role === 'assistant',
             'border-gray-700 bg-gray-900 text-yellow-200 border-l-2 border-l-yellow-500': msg.name,
           }"
         >
@@ -192,7 +193,7 @@ function scrollToBottom() {
               @click="deleteMessage(i)"
             >✕</button>
           </div>
-          <div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
+          <MarkdownField :model-value="msg.content" readonly />
         </div>
       </template>
       <div v-else class="flex-1 flex items-center justify-center text-xs text-gray-500">
