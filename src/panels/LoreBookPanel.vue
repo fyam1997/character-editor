@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import type { CharacterBookEntry } from '../types'
 import EntryCard from '../components/EntryCard.vue'
@@ -8,6 +8,9 @@ import { useSortable } from '../utils/useSortable'
 
 const store = useEditorStore()
 const entryListRef = ref<HTMLElement | null>(null)
+
+const entryKeys = ref<number[]>([])
+let nextEntryKey = 0
 
 const book = computed(() => {
   if (!store.cardJson) return null
@@ -20,6 +23,18 @@ const book = computed(() => {
   return store.cardJson.data.character_book
 })
 
+function syncKeys() {
+  const len = book.value?.entries.length ?? 0
+  while (entryKeys.value.length < len) {
+    entryKeys.value.push(nextEntryKey++)
+  }
+  if (entryKeys.value.length > len) {
+    entryKeys.value.length = len
+  }
+}
+
+watch(() => book.value?.entries.length, syncKeys, { immediate: true })
+
 function addEntry() {
   if (!book.value) return
   const entry: CharacterBookEntry = {
@@ -30,11 +45,20 @@ function addEntry() {
     insertion_order: 100,
   }
   book.value.entries.push(entry)
+  entryKeys.value.push(nextEntryKey++)
+}
+
+function sortInsertionOrder() {
+  if (!book.value) return
+  book.value.entries.forEach((e, i) => {
+    e.insertion_order = 100 - i
+  })
 }
 
 function removeEntry(index: number) {
   if (!book.value) return
   book.value.entries.splice(index, 1)
+  entryKeys.value.splice(index, 1)
 }
 
 function moveEntry(index: number, dir: -1 | 1) {
@@ -43,6 +67,7 @@ function moveEntry(index: number, dir: -1 | 1) {
   if (to < 0 || to >= book.value.entries.length) return
   const entries = book.value.entries
   ;[entries[index], entries[to]] = [entries[to], entries[index]]
+  ;[entryKeys.value[index], entryKeys.value[to]] = [entryKeys.value[to], entryKeys.value[index]]
 }
 
 function reorderEntries(oldIndex: number, newIndex: number) {
@@ -50,6 +75,9 @@ function reorderEntries(oldIndex: number, newIndex: number) {
   const entries = book.value.entries
   const item = entries.splice(oldIndex, 1)[0]
   entries.splice(newIndex, 0, item)
+  const key = entryKeys.value.splice(oldIndex, 1)[0]
+  entryKeys.value.splice(newIndex, 0, key)
+  sortInsertionOrder()
 }
 
 useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
@@ -84,17 +112,24 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
           <label class="text-xs text-gray-400 block mb-0.5">Token Budget</label>
           <input :value="book.token_budget ?? ''" @input="book.token_budget = Number(($event.target as HTMLInputElement).value) || undefined" type="number" class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200" />
         </div>
-        <div class="flex items-end pb-1">
+        <div class="flex justify-items-center pb-1">
           <label class="flex items-center gap-1 text-xs text-gray-400">
             <input type="checkbox" :checked="book.recursive_scanning ?? false" @change="book.recursive_scanning = ($event.target as HTMLInputElement).checked || undefined" />
             Recursive Scanning
           </label>
+          <button
+              class="px-2 py-0.5 ml-2 text-xs bg-gray-700 hover:bg-gray-600 rounded"
+              @click="sortInsertionOrder"
+          >
+            Sort Insertion Order
+          </button>
+
         </div>
       </div>
       <div ref="entryListRef" class="space-y-2">
         <EntryCard
           v-for="(entry, index) in book.entries"
-          :key="index"
+          :key="entryKeys[index]"
           :entry="entry"
           :index="index"
           :total="book.entries.length"

@@ -12,6 +12,9 @@ const emit = defineEmits<{
 const store = useEditorStore()
 const greetingListRef = ref<HTMLElement | null>(null)
 
+const greetingKeys = ref<number[]>([])
+let nextKey = 0
+
 watch(() => store.cardJson, (json) => {
   if (!json) return
   const f = json.data.first_mes
@@ -19,13 +22,26 @@ watch(() => store.cardJson, (json) => {
   if (f && g.length === 0) {
     g.push(f)
   }
+  syncKeys()
 }, { immediate: true })
+
+function syncKeys() {
+  const len = store.cardJson?.data.alternate_greetings.length ?? 0
+  while (greetingKeys.value.length < len) {
+    greetingKeys.value.push(nextKey++)
+  }
+  if (greetingKeys.value.length > len) {
+    greetingKeys.value.length = len
+  }
+}
 
 function reorderGreetings(oldIndex: number, newIndex: number) {
   if (!store.cardJson) return
   const arr = store.cardJson.data.alternate_greetings
   const item = arr.splice(oldIndex, 1)[0]
   arr.splice(newIndex, 0, item)
+  const key = greetingKeys.value.splice(oldIndex, 1)[0]
+  greetingKeys.value.splice(newIndex, 0, key)
   store.cardJson.data.first_mes = arr[0] ?? ''
 }
 
@@ -40,11 +56,13 @@ function updateGreeting(index: number, value: string) {
 function addGreeting() {
   if (!store.cardJson) return
   store.cardJson.data.alternate_greetings.push('')
+  greetingKeys.value.push(nextKey++)
 }
 
 function removeGreeting(index: number) {
   if (!store.cardJson || store.cardJson.data.alternate_greetings.length <= 1) return
   store.cardJson.data.alternate_greetings.splice(index, 1)
+  greetingKeys.value.splice(index, 1)
   if (index === 0) {
     store.cardJson.data.first_mes = store.cardJson.data.alternate_greetings[0] ?? ''
   }
@@ -72,12 +90,13 @@ useSortable(greetingListRef, reorderGreetings, { handle: '.drag-handle' })
     >
       <div
         v-for="(greeting, index) in store.cardJson?.data.alternate_greetings ?? []"
-        :key="index"
+        :key="greetingKeys[index]"
         class="border border-gray-700 rounded p-2"
       >
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-1">
             <span class="drag-handle cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 select-none">⠿</span>
+            <span class="text-xs text-gray-500">Greeting {{ index + 1 }}</span>
           </div>
           <div class="flex items-center gap-2">
             <button
