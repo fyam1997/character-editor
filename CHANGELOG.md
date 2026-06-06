@@ -21,6 +21,11 @@
   handle) via `v-grow` directive
 - Extracted EntryCard to separate SFC, fixing runtime template compiler
   warning when adding lore entries
+- Rearranged BaseSpecForm into three sections: Info (name, creator,
+  version, tags), Character (desc, personality, scenario, creator_notes),
+  Override Prompt (system_prompt, post_history_instructions)
+- Removed first_mes and mes_example from BaseSpecForm; first greeting
+  in GreetingsPanel now syncs with first_mes automatically
 
 ## [0.1.0] — 2026-06-06
 
