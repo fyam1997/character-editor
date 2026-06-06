@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useCards } from '../storage/useCards'
 import { useEditorStore } from '../stores/editor'
 import { isPng, extractJsonFromPng, embedJsonInPng } from '../utils/png'
 import type { CharacterCardV2 } from '../types'
@@ -10,9 +9,8 @@ const emit = defineEmits<{
 }>()
 
 const store = useEditorStore()
-const { cards, loading, loadCards, getCard, addCard, deleteCard } = useCards()
 
-onMounted(loadCards)
+onMounted(() => store.loadCards())
 
 async function handleImport() {
   const input = document.createElement('input')
@@ -36,36 +34,34 @@ async function handleImport() {
       alert('Only V2 character cards are supported')
       return
     }
-    const id = await addCard(json, pngBlob)
+    const id = await store.addCard(json, pngBlob)
     store.setActiveCard(id!, json)
   }
 }
 
 async function selectCard(id: number) {
-  const record = await getCard(id)
+  await store.flushSave()
+  const record = await store.getCard(id)
   if (record) {
     store.setActiveCard(id, record.cardJson)
   }
 }
 
 async function removeCard(id: number) {
-  if (store.activeCardId === id) {
-    store.clearActiveCard()
-  }
-  await deleteCard(id)
+  await store.deleteCard(id)
 }
 
 async function handleExport(type: 'json' | 'png') {
   if (!store.cardJson) return
-  const card = cards.value.find((c) => c.id === store.activeCardId)
+  const record = store.cards.find((c) => c.id === store.activeCardId)
   const json = store.cardJson
   const name = json.data.name || 'character'
   if (type === 'json') {
     const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' })
     downloadBlob(blob, `${name}.json`)
   } else if (type === 'png') {
-    if (card?.pngBlob) {
-      const pngBytes = await card.pngBlob.arrayBuffer()
+    if (record?.pngBlob) {
+      const pngBytes = await record.pngBlob.arrayBuffer()
       const blob = embedJsonInPng(pngBytes, json)
       downloadBlob(blob, `${name}.png`)
     } else {
@@ -104,7 +100,7 @@ async function newCard() {
       extensions: {},
     },
   }
-  const id = await addCard(empty)
+  const id = await store.addCard(empty)
   if (id != null) {
     store.setActiveCard(id, empty)
   }
@@ -146,11 +142,8 @@ async function newCard() {
       </button>
     </div>
     <div class="flex-1 overflow-y-auto p-2">
-      <div v-if="loading" class="text-xs text-gray-500 text-center py-4">
-        Loading...
-      </div>
       <div
-        v-for="card in cards"
+        v-for="card in store.cards"
         :key="card.id"
         class="flex items-center gap-1 px-2 py-1.5 rounded cursor-pointer text-xs mb-0.5"
         :class="
@@ -168,7 +161,7 @@ async function newCard() {
           ✕
         </button>
       </div>
-      <div v-if="!loading && cards.length === 0" class="text-xs text-gray-500 text-center py-4">
+      <div v-if="store.cards.length === 0" class="text-xs text-gray-500 text-center py-4">
         No cards yet
       </div>
     </div>
