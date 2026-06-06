@@ -4,10 +4,6 @@ import { useEditorStore } from '../stores/editor'
 import { isPng, extractJsonFromPng } from '../utils/png'
 import type { CharacterCardV2 } from '../types'
 
-const emit = defineEmits<{
-  openConfig: []
-}>()
-
 const store = useEditorStore()
 
 onMounted(() => store.loadCards())
@@ -167,14 +163,6 @@ async function newCard() {
       <div v-if="store.cards.length === 0" class="text-xs text-gray-500 text-center py-4">
         No cards yet
       </div>
-    </div>
-    <div class="p-2 border-t border-gray-700">
-      <button
-        class="w-full px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded text-left"
-        @click="emit('openConfig')"
-      >
-        ⚙ System Config
-      </button>
     </div>
   </aside>
 </template>

@@ -21,6 +21,10 @@ const store = useEditorStore()
         <label class="text-xs text-gray-400 block mb-1">Scenario</label>
         <MarkdownField v-model="store.cardJson.data.scenario" />
       </div>
+      <div>
+        <label class="text-xs text-gray-400 block mb-1">Example Chat</label>
+        <MarkdownField v-model="store.cardJson.data.mes_example" />
+      </div>
     </div>
   </CollapsibleSection>
 </template>
