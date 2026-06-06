@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { watch } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import SystemConfig from './components/SystemConfig.vue'
 import InfoPanel from './panels/InfoPanel.vue'
@@ -13,7 +13,6 @@ import { embedJsonInPng } from './utils/png'
 import type { CharacterCardV2 } from './types'
 
 const store = useEditorStore()
-const chatGreeting = ref('')
 
 watch(() => store.cardJson?.data, (newVal, oldVal) => {
   if (newVal && oldVal && newVal === oldVal) {
@@ -23,7 +22,7 @@ watch(() => store.cardJson?.data, (newVal, oldVal) => {
 
 function onStartChat(greeting: string) {
   if (!greeting.trim()) return
-  chatGreeting.value = greeting
+  store.createSession(greeting)
 }
 
 function prepareExport(): CharacterCardV2 | null {
@@ -99,7 +98,7 @@ async function handleExport(type: 'json' | 'png') {
         </div>
         <div class="flex flex-1 overflow-hidden">
           <div class="flex-1 p-4 overflow-y-auto flex flex-col">
-            <ChatRoom :greeting="chatGreeting" />
+            <ChatRoom />
           </div>
           <div class="w-72 border-l border-gray-700 p-3 overflow-y-auto bg-gray-900/50">
             <SystemConfig />
