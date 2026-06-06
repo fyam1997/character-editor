@@ -20,6 +20,7 @@ export function extractJsonFromPng(buf: ArrayBuffer): {
   if (encoded) {
     const decoded = Base64.decode(encoded)
     json = JSON.parse(decoded)
+    console.log(json)
   } else {
     json = null
   }
