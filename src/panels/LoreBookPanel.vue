@@ -48,6 +48,13 @@ function addEntry() {
   entryKeys.value.push(nextEntryKey++)
 }
 
+function sortInsertionOrder() {
+  if (!book.value) return
+  book.value.entries.forEach((e, i) => {
+    e.insertion_order = 100 - i
+  })
+}
+
 function removeEntry(index: number) {
   if (!book.value) return
   book.value.entries.splice(index, 1)
@@ -70,6 +77,7 @@ function reorderEntries(oldIndex: number, newIndex: number) {
   entries.splice(newIndex, 0, item)
   const key = entryKeys.value.splice(oldIndex, 1)[0]
   entryKeys.value.splice(newIndex, 0, key)
+  sortInsertionOrder()
 }
 
 useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
@@ -104,11 +112,18 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
           <label class="text-xs text-gray-400 block mb-0.5">Token Budget</label>
           <input :value="book.token_budget ?? ''" @input="book.token_budget = Number(($event.target as HTMLInputElement).value) || undefined" type="number" class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200" />
         </div>
-        <div class="flex items-end pb-1">
+        <div class="flex justify-items-center pb-1">
           <label class="flex items-center gap-1 text-xs text-gray-400">
             <input type="checkbox" :checked="book.recursive_scanning ?? false" @change="book.recursive_scanning = ($event.target as HTMLInputElement).checked || undefined" />
             Recursive Scanning
           </label>
+          <button
+              class="px-2 py-0.5 ml-2 text-xs bg-gray-700 hover:bg-gray-600 rounded"
+              @click="sortInsertionOrder"
+          >
+            Sort Insertion Order
+          </button>
+
         </div>
       </div>
       <div ref="entryListRef" class="space-y-2">
