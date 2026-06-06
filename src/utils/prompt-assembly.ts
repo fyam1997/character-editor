@@ -33,13 +33,20 @@ function replacePlaceholders(text: string, charName: string): string {
   return text.replace(/{{char}}/g, charName).replace(/{{user}}/g, 'User')
 }
 
-function getLoreEntries(data: CharacterCardV2['data']): { beforeChar: string; afterChar: string } {
+function getLoreEntries(data: CharacterCardV2['data'], sessionMessages: ChatMessage[]): { beforeChar: string; afterChar: string } {
   const beforeParts: string[] = []
   const afterParts: string[] = []
   const book = data.character_book
   if (!book?.entries) return { beforeChar: '', afterChar: '' }
 
-  const active = book.entries.filter(e => e.constant && e.enabled)
+  const allMessageText = sessionMessages.map(m => m.content).join('\n').toLowerCase()
+
+  const active = book.entries.filter(e => {
+    if (!e.enabled) return false
+    if (e.constant) return true
+    if (!e.keys?.length) return false
+    return e.keys.some(key => key && allMessageText.includes(key.toLowerCase()))
+  })
   active.sort((a, b) => (a.insertion_order ?? 0) - (b.insertion_order ?? 0))
 
   for (const e of active) {
@@ -83,7 +90,7 @@ export function assembleApiMessages(
   }
 
   // Lorebook entries before character description
-  const lore = getLoreEntries(data)
+  const lore = getLoreEntries(data, sessionMessages)
   if (lore.beforeChar) {
     result.push({ role: 'system', content: replacePlaceholders(`[Details of the fictional world the RP is set in:\n${lore.beforeChar}]`, charName) })
   }
