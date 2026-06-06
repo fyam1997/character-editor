@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.6] — 2026-06-07
+
+### Added
+- Regenerate (↻) button on assistant messages — deletes the message and all
+  below it, then re-streams a fresh response from the API
+- `isAssistantMsg` guard to show the refresh button only on assistant messages
+
+### Fixed
+- Chat message delete now persists to IndexedDB (was mutating a reactive proxy
+  instead of a fresh Dexie object)
+- Session dropdown no longer stays open after selecting or creating a session
+- Greeting-bound session creation: each greeting click now creates a new session
+  instead of re-selecting an existing one; sessions are no longer tied to the
+  greeting prop
+
+### Changed
+- Chat room decoupled from the `greeting` prop — sessions are managed directly
+  via the store, allowing multiple sessions with the same greeting
+
 ## [0.1.5] — 2026-06-07
 
 ### Added
