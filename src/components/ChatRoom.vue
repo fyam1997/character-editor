@@ -110,6 +110,11 @@ function isChatMsg(i: number): boolean {
   return i >= info.sessionStart && i < info.sessionStart + info.sessionCount
 }
 
+function isAssistantMsg(i: number): boolean {
+  const msg = assembledInfo.value.messages[i]
+  return msg?.role === 'assistant'
+}
+
 async function deleteMessage(assembledIdx: number) {
   const sid = store.activeSessionId
   if (sid == null) return
@@ -212,6 +217,7 @@ function scrollToBottom() {
             </span>
             <span v-if="isChatMsg(i)" class="flex items-center gap-1">
               <button
+                v-if="isAssistantMsg(i)"
                 class="text-xs text-gray-500 hover:text-green-400"
                 @click="regenerateMessage(i)"
               >↻</button>
