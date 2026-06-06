@@ -23,6 +23,7 @@ watch(() => store.cardJson?.data, (newVal, oldVal) => {
 }, { deep: true })
 
 function onStartChat(greeting: string) {
+  if (!greeting.trim()) return
   chatGreeting.value = greeting
 }
 
@@ -93,14 +94,8 @@ async function handleExport(type: 'json' | 'png') {
           </div>
         </template>
       </section>
-      <section class="flex-1 p-4 overflow-y-auto flex flex-col">
-        <div v-if="!store.isActive" class="text-gray-500 text-center mt-20">
-          Select a card and click ▶ on a greeting to start chatting
-        </div>
-        <div v-else-if="!chatGreeting" class="text-gray-500 text-center mt-20">
-          Click ▶ on a greeting to start a chat session
-        </div>
-        <ChatRoom v-else :greeting="chatGreeting" />
+      <section v-if="store.isActive" class="flex-1 p-4 overflow-y-auto flex flex-col">
+        <ChatRoom :greeting="chatGreeting" />
       </section>
     </main>
     <SystemConfig v-if="showConfig" @close="showConfig = false" />
