@@ -7,6 +7,7 @@ export const useEditorStore = defineStore('editor', () => {
   const activeCardId = ref<number | null>(null)
   const cardJson = ref<CharacterCardV2 | null>(null)
   const cards = ref<CardRecord[]>([])
+  const pngBlob = ref<Blob | undefined>(undefined)
 
   const apiConfig = ref({
     baseUrl: 'https://api.openai.com/v1',
@@ -32,6 +33,7 @@ export const useEditorStore = defineStore('editor', () => {
     await db.cards.update(id, {
       name: plain.data.name || 'Untitled',
       cardJson: plain,
+      pngBlob: pngBlob.value,
       updatedAt: new Date().toISOString(),
     })
   }
@@ -52,33 +54,42 @@ export const useEditorStore = defineStore('editor', () => {
     await loadCards()
   }
 
-  function setActiveCard(id: number, json: CharacterCardV2) {
+  async function setActiveCard(id: number, json: CharacterCardV2) {
     activeCardId.value = id
     cardJson.value = json
+    const record = await db.cards.get(id)
+    pngBlob.value = record?.pngBlob
   }
 
   function clearActiveCard() {
     activeCardId.value = null
     cardJson.value = null
+    pngBlob.value = undefined
   }
 
   async function loadCards() {
     cards.value = await db.cards.orderBy('updatedAt').reverse().toArray()
   }
 
+  function updatePng(blob: Blob | undefined) {
+    pngBlob.value = blob
+    scheduleSave()
+  }
+
   async function addCard(
     cardJson_: CharacterCardV2,
-    pngBlob?: Blob
+    blob?: Blob
   ): Promise<number | undefined> {
     const now = new Date().toISOString()
     const plain = toPlain(cardJson_)
     const id = await db.cards.add({
       name: plain.data.name || 'Untitled',
       cardJson: plain,
-      pngBlob,
+      pngBlob: blob,
       createdAt: now,
       updatedAt: now,
     })
+    if (blob) pngBlob.value = blob
     await loadCards()
     return id
   }
@@ -99,6 +110,7 @@ export const useEditorStore = defineStore('editor', () => {
     activeCardId,
     cardJson,
     cards,
+    pngBlob,
     apiConfig,
     isActive,
     setActiveCard,
@@ -109,5 +121,6 @@ export const useEditorStore = defineStore('editor', () => {
     addCard,
     getCard,
     deleteCard,
+    updatePng,
   }
 })

@@ -35,7 +35,7 @@ async function handleImport() {
       return
     }
     const id = await store.addCard(json, pngBlob)
-    store.setActiveCard(id!, json)
+    await store.setActiveCard(id!, json)
   }
 }
 
@@ -43,7 +43,7 @@ async function selectCard(id: number) {
   await store.flushSave()
   const record = await store.getCard(id)
   if (record) {
-    store.setActiveCard(id, record.cardJson)
+    await store.setActiveCard(id, record.cardJson)
   }
 }
 
@@ -63,14 +63,13 @@ function prepareExport(): CharacterCardV2 | null {
 async function handleExport(type: 'json' | 'png') {
   const json = prepareExport()
   if (!json) return
-  const record = store.cards.find((c) => c.id === store.activeCardId)
   const name = json.data.name || 'character'
   if (type === 'json') {
     const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' })
     downloadBlob(blob, `${name}.json`)
   } else if (type === 'png') {
-    if (record?.pngBlob) {
-      const pngBytes = await record.pngBlob.arrayBuffer()
+    if (store.pngBlob) {
+      const pngBytes = await store.pngBlob.arrayBuffer()
       const blob = embedJsonInPng(pngBytes, json)
       downloadBlob(blob, `${name}.png`)
     } else {
@@ -111,7 +110,7 @@ async function newCard() {
   }
   const id = await store.addCard(empty)
   if (id != null) {
-    store.setActiveCard(id, empty)
+    await store.setActiveCard(id, empty)
   }
 }
 </script>
