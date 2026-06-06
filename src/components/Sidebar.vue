@@ -83,7 +83,7 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-function newCard() {
+async function newCard() {
   const empty: CharacterCardV2 = {
     spec: 'chara_card_v2',
     spec_version: '2.0',
@@ -104,7 +104,10 @@ function newCard() {
       extensions: {},
     },
   }
-  store.setActiveCard(-1, empty)
+  const id = await addCard(empty)
+  if (id != null) {
+    store.setActiveCard(id, empty)
+  }
 }
 </script>
 

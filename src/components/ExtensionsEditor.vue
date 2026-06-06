@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useField } from 'vee-validate'
+import { useEditorStore } from '../stores/editor'
 
-const { value: extensions } = useField<Record<string, unknown>>('extensions')
+const store = useEditorStore()
 
 const keys = ref<string[]>([])
 
 function refreshKeys() {
-  keys.value = Object.keys(extensions.value || {})
+  keys.value = Object.keys(store.cardJson?.data.extensions ?? {})
 }
 
 function setExtValue(key: string, raw: string) {
-  if (!extensions.value) extensions.value = {}
+  if (!store.cardJson) return
   try {
-    extensions.value[key] = JSON.parse(raw)
+    store.cardJson.data.extensions[key] = JSON.parse(raw)
   } catch {
-    extensions.value[key] = raw
+    store.cardJson.data.extensions[key] = raw
   }
 }
 
 function getExtValue(key: string): string {
-  const v = extensions.value?.[key]
+  const v = store.cardJson?.data.extensions[key]
   if (v === undefined || v === null) return ''
   if (typeof v === 'string') return v
   return JSON.stringify(v, null, 2)
@@ -28,15 +28,15 @@ function getExtValue(key: string): string {
 
 function addKey() {
   const k = prompt('Extension key:')
-  if (k && extensions.value) {
-    extensions.value[k] = ''
+  if (k && store.cardJson) {
+    store.cardJson.data.extensions[k] = ''
     refreshKeys()
   }
 }
 
 function removeKey(key: string) {
-  if (extensions.value) {
-    delete extensions.value[key]
+  if (store.cardJson) {
+    delete store.cardJson.data.extensions[key]
     refreshKeys()
   }
 }
@@ -45,7 +45,7 @@ refreshKeys()
 </script>
 
 <template>
-  <div>
+  <div v-if="store.cardJson">
     <div class="flex items-center gap-2 mb-1">
       <label class="text-xs text-gray-400">Extensions</label>
       <button
