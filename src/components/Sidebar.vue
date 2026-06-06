@@ -25,8 +25,15 @@ async function handleImport() {
     let pngBlob: Blob | undefined
     if (isPng(buf)) {
       const extracted = extractJsonFromPng(buf)
-      json = extracted.json as CharacterCardV2
       pngBlob = new Blob([buf], { type: 'image/png' })
+      if (extracted.json) {
+        json = extracted.json as CharacterCardV2
+      } else {
+        const bytes = new Uint8Array(buf)
+        const iend = locateIEND(bytes)
+        if (iend === -1) { alert('Invalid PNG'); return }
+        json = JSON.parse(new TextDecoder().decode(bytes.slice(iend))) as CharacterCardV2
+      }
     } else {
       json = JSON.parse(new TextDecoder().decode(buf)) as CharacterCardV2
     }
@@ -74,6 +81,18 @@ async function selectCard(id: number) {
 
 async function removeCard(id: number) {
   await store.deleteCard(id)
+}
+
+function locateIEND(buf: Uint8Array): number {
+  for (let i = 8; i <= buf.length - 12; i++) {
+    const len = (buf[i] << 24) | (buf[i + 1] << 16) | (buf[i + 2] << 8) | buf[i + 3]
+    if (
+      buf[i + 4] === 73 && buf[i + 5] === 69 && buf[i + 6] === 78 && buf[i + 7] === 68
+    ) {
+      return i + 4 + 4 + len + 4
+    }
+  }
+  return -1
 }
 
 async function newCard() {
