@@ -50,6 +50,10 @@ function commitTags() {
           class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
         />
       </div>
+      <div class="mt-3">
+        <label class="text-xs text-gray-400 block mb-1">Creator Notes</label>
+        <textarea v-model="store.cardJson.data.creator_notes" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
+      </div>
     </section>
 
     <section>
@@ -66,10 +70,6 @@ function commitTags() {
         <div>
           <label class="text-xs text-gray-400 block mb-1">Scenario</label>
           <textarea v-model="store.cardJson.data.scenario" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
-        </div>
-        <div>
-          <label class="text-xs text-gray-400 block mb-1">Creator Notes</label>
-          <textarea v-model="store.cardJson.data.creator_notes" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
         </div>
       </div>
     </section>
