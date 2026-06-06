@@ -3,7 +3,7 @@ import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import { streamChat } from '../utils/api'
 import { assembleApiMessages } from '../utils/prompt-assembly'
-import type { ChatMessage } from '../types'
+import type { ChatMessage, ChatSession } from '../types'
 import { db } from '../storage/db'
 import MarkdownField from './MarkdownField.vue'
 
@@ -110,7 +110,7 @@ function isChatMsg(i: number): boolean {
 async function deleteMessage(assembledIdx: number) {
   const sid = store.activeSessionId
   if (sid == null) return
-  const session = store.sessions.find((s) => s.id === sid)
+  const session = await db.chatSessions.get(sid) as ChatSession | undefined
   if (!session) return
   const sessionIdx = assembledIdx - assembledInfo.value.sessionStart
   const firstSessionIdx = session.messages[0]?.role === 'system' ? 1 : 0
@@ -119,6 +119,8 @@ async function deleteMessage(assembledIdx: number) {
   session.messages.splice(msgIdx, 1)
   session.updatedAt = new Date().toISOString()
   await db.chatSessions.put(session)
+  const idx = store.sessions.findIndex((s) => s.id === sid)
+  if (idx !== -1) store.sessions[idx] = session
 }
 
 function cancelChat() {
