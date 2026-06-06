@@ -40,6 +40,10 @@ watch(() => store.activeCardId, async () => {
   await store.loadSessionsForCard()
 })
 
+watch(() => store.activeSessionId, () => {
+  showSessions.value = false
+})
+
 async function streamAssistantResponse(apiMessages: ChatMessage[]) {
   sending.value = true
   abortController.value = new AbortController()
