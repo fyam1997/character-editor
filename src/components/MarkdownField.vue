@@ -14,9 +14,17 @@ const editing = ref(false)
 const buffer = ref('')
 const textarea = ref<HTMLTextAreaElement | null>(null)
 
+function dialogueHtml(text: string): string {
+  return text.replace(
+    /(["](?:[^"\\]|\\.)*["]|["\u201c][^"\u201d]*["\u201d]|[\u300c][^\u300d]*[\u300d])/g,
+    '<span class="dialogue">$1</span>'
+  )
+}
+
 const rendered = computed(() => {
   if (!props.modelValue) return ''
-  return marked(props.modelValue, { breaks: true }) as string
+  const text = dialogueHtml(props.modelValue)
+  return marked(text, { breaks: true }) as string
 })
 
 function startEdit() {
@@ -111,5 +119,9 @@ function onKeydown(e: KeyboardEvent) {
 }
 .markdown-preview :deep(em) {
   font-style: italic;
+}
+
+.markdown-preview :deep(.dialogue) {
+  color: rgb(134 239 172);
 }
 </style>
