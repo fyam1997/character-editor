@@ -7,10 +7,6 @@ import type { ChatMessage, ChatSession } from '../types'
 import { db } from '../storage/db'
 import MarkdownField from './MarkdownField.vue'
 
-const props = defineProps<{
-  greeting: string
-}>()
-
 const store = useEditorStore()
 const input = ref('')
 const sending = ref(false)
@@ -42,20 +38,6 @@ function selectAndClose(id: number) {
 watch(() => store.activeCardId, async () => {
   store.activeSessionId = null
   await store.loadSessionsForCard()
-})
-
-watch(() => props.greeting, async () => {
-  if (!props.greeting.trim()) return
-  await store.loadSessionsForCard()
-  const existing = store.sessions.find(
-    (s) => s.messages[0]?.content === props.greeting
-  )
-  if (existing && existing.id != null) {
-    await store.selectSession(existing.id)
-  } else {
-    await store.createSession(props.greeting)
-  }
-  scrollToBottom()
 })
 
 async function streamAssistantResponse(apiMessages: ChatMessage[]) {
