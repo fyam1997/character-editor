@@ -5,8 +5,10 @@ import ExtensionsEditor from './ExtensionsEditor.vue'
 
 const store = useEditorStore()
 
-watch(() => store.cardJson, () => {
-  store.scheduleSave()
+watch(() => store.cardJson?.data, (newVal, oldVal) => {
+  if (newVal && oldVal && newVal === oldVal) {
+    store.scheduleSave()
+  }
 }, { deep: true })
 </script>
 

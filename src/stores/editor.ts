@@ -45,10 +45,9 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   async function flushSave() {
-    if (saveTimer) {
-      clearTimeout(saveTimer)
-      saveTimer = null
-    }
+    if (!saveTimer) return
+    clearTimeout(saveTimer)
+    saveTimer = null
     await doSave()
     await loadCards()
   }
