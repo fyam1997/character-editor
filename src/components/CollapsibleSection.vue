@@ -77,7 +77,7 @@ const headerClass = computed(() => {
     <div
       ref="body"
       class="border border-gray-700 rounded-b-lg border-t-0 overflow-hidden"
-      :class="{ 'border-transparent': !open && !animating }"
+      :class="{ 'border-transparent': !open }"
       style="transition: height 0.3s ease"
       @transitionend="end"
     >
