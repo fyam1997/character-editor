@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { CharacterBookEntry } from '../types'
+import MarkdownField from './MarkdownField.vue'
 
 const props = defineProps<{
   entry: CharacterBookEntry
@@ -82,12 +83,7 @@ function update<K extends keyof CharacterBookEntry>(key: K, value: CharacterBook
         </div>
       <div>
         <label class="text-xs text-gray-400 block mb-0.5">Content</label>
-        <textarea
-          :value="entry.content"
-          @input="update('content', ($event.target as HTMLInputElement).value)"
-          v-grow
-          class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
-        ></textarea>
+        <MarkdownField :model-value="entry.content" @update:model-value="(v: string) => update('content', v)" />
       </div>
 
       <template v-if="showAdvanced">
