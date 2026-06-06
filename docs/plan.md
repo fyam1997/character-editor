@@ -1,4 +1,7 @@
-# Plan: Character Card Editor
+# Plan: Character Card Editor (v0.1 — archived)
+
+> **Status**: Implemented in v0.1.0. All 9 steps completed.
+> **Tag**: `v0.1.0`
 
 ## Purpose
 
