@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.4] — 2026-06-07
+
+### Added
+- Drag-and-drop reordering for Greetings list and Lore Book entries list
+  via SortableJS with a ⠿ handle on each item
+- `useSortable` composable (`src/utils/useSortable.ts`) for wiring SortableJS
+  to Vue reactive arrays
+
+### Changed
+- Greeting cards and lore entry cards now include a drag handle in the header
+- Both lists remain fully functional with the existing ▲▼ move buttons
+
 ## [0.1.3] — 2026-06-07
 
 ### Added
