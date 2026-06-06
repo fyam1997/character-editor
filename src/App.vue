@@ -13,7 +13,6 @@ import { embedJsonInPng } from './utils/png'
 import type { CharacterCardV2 } from './types'
 
 const store = useEditorStore()
-const showConfig = ref(false)
 const chatGreeting = ref('')
 
 watch(() => store.cardJson?.data, (newVal, oldVal) => {
@@ -66,7 +65,7 @@ async function handleExport(type: 'json' | 'png') {
 
 <template>
   <div class="h-screen flex text-sm bg-gray-950 text-gray-200">
-    <Sidebar @open-config="showConfig = true" />
+    <Sidebar />
     <main class="flex-1 flex">
       <section class="flex-1 border-r border-gray-700 flex flex-col">
         <div v-if="!store.isActive" class="flex-1 flex items-center justify-center text-gray-500 text-sm p-4">
@@ -94,10 +93,19 @@ async function handleExport(type: 'json' | 'png') {
           </div>
         </template>
       </section>
-      <section v-if="store.isActive" class="flex-1 p-4 overflow-y-auto flex flex-col">
-        <ChatRoom :greeting="chatGreeting" />
+      <section v-if="store.isActive" class="flex-1 flex flex-col">
+        <div class="flex items-center px-4 py-2 border-b border-gray-700 bg-gray-900">
+          <h2 class="text-sm font-bold text-gray-200">Chat room</h2>
+        </div>
+        <div class="flex flex-1 overflow-hidden">
+          <div class="flex-1 p-4 overflow-y-auto flex flex-col">
+            <ChatRoom :greeting="chatGreeting" />
+          </div>
+          <div class="w-72 border-l border-gray-700 p-3 overflow-y-auto bg-gray-900/50">
+            <SystemConfig />
+          </div>
+        </div>
       </section>
     </main>
-    <SystemConfig v-if="showConfig" @close="showConfig = false" />
   </div>
 </template>

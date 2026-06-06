@@ -1,33 +1,39 @@
 <script setup lang="ts">
 import { useEditorStore } from '../stores/editor'
+import CollapsibleSection from './CollapsibleSection.vue'
 
 const store = useEditorStore()
 
-const emit = defineEmits<{
-  close: []
-}>()
+function autoResize(el: Event) {
+  const ta = el.target as HTMLTextAreaElement
+  ta.style.height = 'auto'
+  ta.style.height = ta.scrollHeight + 'px'
+}
+
+const vAutoResize = {
+  mounted: (el: HTMLTextAreaElement) => {
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 'px'
+  },
+}
 </script>
 
 <template>
-  <div
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-    @click.self="emit('close')"
-  >
-    <div class="bg-gray-800 border border-gray-600 rounded-lg p-5 w-96 shadow-xl">
-      <h2 class="text-sm font-bold text-gray-200 mb-4">System Config</h2>
-      <div class="space-y-3">
-        <div>
-          <label class="text-xs text-gray-400 block mb-1">API Base URL</label>
-          <input
-            v-model="store.apiConfig.baseUrl"
-            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200"
-          />
-        </div>
+  <div class="space-y-3">
+    <CollapsibleSection title="AI API Config" :defaultOpen="true">
+      <div class="space-y-2">
         <div>
           <label class="text-xs text-gray-400 block mb-1">API Key</label>
           <input
             v-model="store.apiConfig.apiKey"
             type="password"
+            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200"
+          />
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Base URL</label>
+          <input
+            v-model="store.apiConfig.baseUrl"
             class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200"
           />
         </div>
@@ -39,14 +45,38 @@ const emit = defineEmits<{
           />
         </div>
       </div>
-      <div class="flex justify-end mt-4">
-        <button
-          class="px-4 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white"
-          @click="emit('close')"
-        >
-          Done
-        </button>
+    </CollapsibleSection>
+
+    <CollapsibleSection title="System Prompts" :defaultOpen="true">
+      <div class="space-y-2">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Main Prompt</label>
+          <textarea
+            v-model="store.systemPrompts.mainPrompt"
+            v-auto-resize
+            @input="autoResize"
+            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200 resize-none overflow-hidden"
+          ></textarea>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Auxiliary Prompt</label>
+          <textarea
+            v-model="store.systemPrompts.auxiliaryPrompt"
+            v-auto-resize
+            @input="autoResize"
+            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200 resize-none overflow-hidden"
+          ></textarea>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Post-History Prompt</label>
+          <textarea
+            v-model="store.systemPrompts.postHistoryPrompt"
+            v-auto-resize
+            @input="autoResize"
+            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200 resize-none overflow-hidden"
+          ></textarea>
+        </div>
       </div>
-    </div>
+    </CollapsibleSection>
   </div>
 </template>

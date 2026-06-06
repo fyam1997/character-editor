@@ -28,6 +28,26 @@ export const useEditorStore = defineStore('editor', () => {
     localStorage.setItem('apiConfig', JSON.stringify(v))
   }, { deep: true })
 
+  function loadSystemPrompts() {
+    try {
+      const saved = localStorage.getItem('systemPrompts')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    return null
+  }
+
+  const savedPrompts = loadSystemPrompts()
+  const systemPrompts = ref(savedPrompts ?? {
+    startChatPrompt: '',
+    mainPrompt: '',
+    auxiliaryPrompt: '',
+    postHistoryPrompt: '',
+  })
+
+  watch(systemPrompts, (v) => {
+    localStorage.setItem('systemPrompts', JSON.stringify(v))
+  }, { deep: true })
+
   const isActive = computed(() => activeCardId.value !== null)
 
   // chat sessions
@@ -207,6 +227,7 @@ export const useEditorStore = defineStore('editor', () => {
     cards,
     pngBlob,
     apiConfig,
+    systemPrompts,
     isActive,
     sessions,
     activeSessionId,
