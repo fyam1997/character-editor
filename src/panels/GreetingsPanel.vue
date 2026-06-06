@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import { useEditorStore } from '../stores/editor'
+import CollapsibleSection from '../components/CollapsibleSection.vue'
 
 const emit = defineEmits<{
   startChat: [greeting: string]
@@ -40,16 +41,15 @@ function removeGreeting(index: number) {
 </script>
 
 <template>
-  <div>
-    <div class="flex items-center gap-2 mb-2">
-      <h2 class="text-sm font-bold text-gray-300">Greetings</h2>
+  <CollapsibleSection title="Greetings">
+    <template #actions>
       <button
         class="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded"
         @click="addGreeting"
       >
         + Add Greeting
       </button>
-    </div>
+    </template>
     <div v-if="!store.cardJson || store.cardJson.data.alternate_greetings.length === 0" class="text-xs text-gray-600 py-2">
       No greetings yet.
     </div>
@@ -82,5 +82,5 @@ function removeGreeting(index: number) {
         class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
       ></textarea>
     </div>
-  </div>
+  </CollapsibleSection>
 </template>

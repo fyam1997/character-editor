@@ -2,7 +2,8 @@
 import { computed } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import type { CharacterBookEntry } from '../types'
-import EntryCard from './EntryCard.vue'
+import EntryCard from '../components/EntryCard.vue'
+import CollapsibleSection from '../components/CollapsibleSection.vue'
 
 const store = useEditorStore()
 
@@ -44,17 +45,15 @@ function moveEntry(index: number, dir: -1 | 1) {
 </script>
 
 <template>
-  <div>
-    <div class="flex items-center gap-2 mb-2">
-      <h2 class="text-sm font-bold text-gray-300">Character Lore Book</h2>
+  <CollapsibleSection title="Character Lore Book">
+    <template #actions>
       <button
         class="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded"
         @click="addEntry"
       >
         + Add Entry
       </button>
-    </div>
-
+    </template>
     <div v-if="!book" class="text-xs text-gray-600 py-2">No card selected</div>
     <template v-else>
       <div class="grid grid-cols-2 gap-2 mb-3 p-3 bg-gray-900 rounded border border-gray-700">
@@ -96,5 +95,5 @@ function moveEntry(index: number, dir: -1 | 1) {
         No lorebook entries. Add one to define character-specific knowledge.
       </div>
     </template>
-  </div>
+  </CollapsibleSection>
 </template>
