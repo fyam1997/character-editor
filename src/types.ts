@@ -47,6 +47,11 @@ export type CharacterBookEntry = {
   position?: 'before_char' | 'after_char'
 }
 
+export type ChatMessage = {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
 export type CardRecord = {
   id?: number
   name: string

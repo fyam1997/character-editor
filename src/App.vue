@@ -5,6 +5,7 @@ import SystemConfig from './components/SystemConfig.vue'
 import BaseSpecForm from './components/BaseSpecForm.vue'
 import GreetingsPanel from './components/GreetingsPanel.vue'
 import LoreBookPanel from './components/LoreBookPanel.vue'
+import ChatRoom from './components/ChatRoom.vue'
 import { useEditorStore } from './stores/editor'
 
 const store = useEditorStore()
@@ -34,17 +35,14 @@ function onStartChat(greeting: string) {
           </div>
         </div>
       </section>
-      <section class="flex-1 p-4 overflow-y-auto">
+      <section class="flex-1 p-4 overflow-y-auto flex flex-col">
         <div v-if="!store.isActive" class="text-gray-500 text-center mt-20">
           Select a card and click ▶ on a greeting to start chatting
         </div>
         <div v-else-if="!chatGreeting" class="text-gray-500 text-center mt-20">
           Click ▶ on a greeting to start a chat session
         </div>
-        <div v-else class="space-y-4">
-          <p class="text-xs text-gray-500">Chat room — coming next</p>
-          <p class="text-xs text-gray-400">Greeting: {{ chatGreeting?.slice(0, 50) }}...</p>
-        </div>
+        <ChatRoom v-else :greeting="chatGreeting" />
       </section>
     </main>
     <SystemConfig v-if="showConfig" @close="showConfig = false" />
