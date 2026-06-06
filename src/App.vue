@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar.vue'
 import SystemConfig from './components/SystemConfig.vue'
 import BaseSpecForm from './components/BaseSpecForm.vue'
 import GreetingsPanel from './components/GreetingsPanel.vue'
+import LoreBookPanel from './components/LoreBookPanel.vue'
 import { useEditorStore } from './stores/editor'
 
 const store = useEditorStore()
@@ -28,8 +29,8 @@ function onStartChat(greeting: string) {
           <div class="border-t border-gray-700 pt-4">
             <GreetingsPanel @start-chat="onStartChat" />
           </div>
-          <div class="text-xs text-gray-500 border-t border-gray-700 pt-4">
-            Lore Book — coming next
+          <div class="border-t border-gray-700 pt-4">
+            <LoreBookPanel />
           </div>
         </div>
       </section>
