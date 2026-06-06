@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import type { CharacterBookEntry } from '../types'
 import EntryCard from '../components/EntryCard.vue'
 import CollapsibleSection from '../components/CollapsibleSection.vue'
+import { useSortable } from '../utils/useSortable'
 
 const store = useEditorStore()
+const entryListRef = ref<HTMLElement | null>(null)
 
 const book = computed(() => {
   if (!store.cardJson) return null
@@ -42,6 +44,15 @@ function moveEntry(index: number, dir: -1 | 1) {
   const entries = book.value.entries
   ;[entries[index], entries[to]] = [entries[to], entries[index]]
 }
+
+function reorderEntries(oldIndex: number, newIndex: number) {
+  if (!book.value) return
+  const entries = book.value.entries
+  const item = entries.splice(oldIndex, 1)[0]
+  entries.splice(newIndex, 0, item)
+}
+
+useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
 </script>
 
 <template>
@@ -80,7 +91,7 @@ function moveEntry(index: number, dir: -1 | 1) {
           </label>
         </div>
       </div>
-      <div class="space-y-2">
+      <div ref="entryListRef" class="space-y-2">
         <EntryCard
           v-for="(entry, index) in book.entries"
           :key="index"
