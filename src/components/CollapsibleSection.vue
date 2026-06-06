@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps<{
   title: string
@@ -10,10 +10,44 @@ const props = defineProps<{
 const key = `panel:${props.title}`
 const saved = localStorage.getItem(key)
 const open = ref(saved === null ? true : saved === 'true')
+const body = ref<HTMLElement | null>(null)
+const animating = ref(false)
+
+onMounted(() => {
+  if (!open.value && body.value) {
+    body.value.style.height = '0px'
+  }
+})
 
 function toggle() {
+  if (animating.value) return
+  const el = body.value
+  if (!el) return
+  animating.value = true
+
+  if (open.value) {
+    const h = el.scrollHeight
+    el.style.height = h + 'px'
+    el.offsetHeight
+    el.style.height = '0px'
+  } else {
+    el.style.height = '0px'
+    el.offsetHeight
+    el.style.height = el.scrollHeight + 'px'
+  }
   open.value = !open.value
   localStorage.setItem(key, String(open.value))
+}
+
+function end() {
+  const el = body.value
+  if (!el) return
+  if (open.value) {
+    el.style.height = ''
+  } else {
+    el.style.height = '0px'
+  }
+  animating.value = false
 }
 
 const headerClass = computed(() => {
@@ -40,26 +74,21 @@ const headerClass = computed(() => {
         <slot name="actions" />
       </div>
     </div>
-    <Transition name="collapse">
-      <div v-if="open" class="border border-gray-700 rounded-b-lg border-t-0 px-3 py-3">
+    <div
+      ref="body"
+      class="border border-gray-700 rounded-b-lg border-t-0 overflow-hidden"
+      :class="{ 'border-transparent': !open && !animating }"
+      style="transition: height 0.3s ease"
+      @transitionend="end"
+    >
+      <div class="px-3 py-3">
         <slot />
       </div>
-    </Transition>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.collapse-enter-active {
-  transition: opacity 0.2s ease;
-}
-.collapse-leave-active {
-  transition: opacity 0.15s ease;
-}
-.collapse-enter-from,
-.collapse-leave-to {
-  opacity: 0;
-}
-
 .sticky {
   will-change: transform;
   background: rgb(3 7 18);
