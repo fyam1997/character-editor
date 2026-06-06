@@ -7,7 +7,14 @@ const props = defineProps<{
   borderless?: boolean
 }>()
 
-const open = ref(true)
+const key = `panel:${props.title}`
+const saved = localStorage.getItem(key)
+const open = ref(saved === null ? true : saved === 'true')
+
+function toggle() {
+  open.value = !open.value
+  localStorage.setItem(key, String(open.value))
+}
 
 const headerClass = computed(() => {
   if (props.borderless) {
@@ -25,7 +32,7 @@ const headerClass = computed(() => {
   <div>
     <div
       :class="['sticky top-0 z-20 flex items-center gap-2 py-2 px-3 cursor-pointer select-none', headerClass]"
-      @click="open = !open"
+      @click="toggle"
     >
       <span class="text-xs text-gray-500 transition-transform duration-200" :class="open ? 'rotate-0' : '-rotate-90'">▼</span>
       <h2 class="text-sm font-bold text-gray-300">{{ title }}</h2>
