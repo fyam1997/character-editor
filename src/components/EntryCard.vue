@@ -42,21 +42,9 @@ function update<K extends keyof CharacterBookEntry>(key: K, value: CharacterBook
 <template>
   <div class="border border-gray-700 rounded">
     <div class="flex items-center gap-1 px-3 py-1.5 bg-gray-800">
-      <button
-        class="text-xs text-gray-500 hover:text-gray-300 w-4"
-        :disabled="index === 0"
-        :class="{ 'opacity-30': index === 0 }"
-        @click="emit('move', -1)"
-      >▲</button>
-      <button
-        class="text-xs text-gray-500 hover:text-gray-300 w-4"
-        :disabled="index === total - 1"
-        :class="{ 'opacity-30': index === total - 1 }"
-        @click="emit('move', 1)"
-      >▼</button>
-      <span class="text-xs text-gray-500 ml-1">Entry {{ index + 1 }}</span>
-      <span v-if="entry.keys?.length" class="text-xs text-gray-600 ml-2 truncate flex-1">
-        [{{ entry.keys.join(', ') }}]
+      <span class="drag-handle cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 select-none">⠿</span>
+      <span class="text-xs text-gray-300 ml-2 truncate flex-1">
+        {{ entry.name ?? entry.comment ?? "" }}
       </span>
       <label class="flex items-center gap-1 text-xs text-gray-400 ml-auto mr-2">
         <input type="checkbox" :checked="entry.enabled" @change="update('enabled', ($event.target as HTMLInputElement).checked)" />

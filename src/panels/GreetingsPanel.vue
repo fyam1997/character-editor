@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import CollapsibleSection from '../components/CollapsibleSection.vue'
 import MarkdownField from '../components/MarkdownField.vue'
+import { useSortable } from '../utils/useSortable'
 
 const emit = defineEmits<{
   startChat: [greeting: string]
 }>()
 
 const store = useEditorStore()
+const greetingListRef = ref<HTMLElement | null>(null)
 
 watch(() => store.cardJson, (json) => {
   if (!json) return
@@ -18,6 +20,14 @@ watch(() => store.cardJson, (json) => {
     g.push(f)
   }
 }, { immediate: true })
+
+function reorderGreetings(oldIndex: number, newIndex: number) {
+  if (!store.cardJson) return
+  const arr = store.cardJson.data.alternate_greetings
+  const item = arr.splice(oldIndex, 1)[0]
+  arr.splice(newIndex, 0, item)
+  store.cardJson.data.first_mes = arr[0] ?? ''
+}
 
 function updateGreeting(index: number, value: string) {
   if (!store.cardJson) return
@@ -39,6 +49,8 @@ function removeGreeting(index: number) {
     store.cardJson.data.first_mes = store.cardJson.data.alternate_greetings[0] ?? ''
   }
 }
+
+useSortable(greetingListRef, reorderGreetings, { handle: '.drag-handle' })
 </script>
 
 <template>
@@ -55,29 +67,36 @@ function removeGreeting(index: number) {
       No greetings yet.
     </div>
     <div
-      v-for="(greeting, index) in store.cardJson?.data.alternate_greetings ?? []"
-      :key="index"
-      class="mb-2 border border-gray-700 rounded p-2"
+      ref="greetingListRef"
+      class="space-y-2"
     >
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-xs text-gray-500">Greeting {{ index + 1 }}</span>
-        <div class="flex items-center gap-2">
-          <button
-            class="px-2 py-0.5 text-xs rounded text-green-200"
-            :class="greeting.trim() ? 'bg-green-800 hover:bg-green-700' : 'bg-green-900 opacity-50 cursor-default'"
-            :disabled="!greeting.trim()"
-            @click="emit('startChat', greeting)"
-          >
-            ▶ Start Chat
-          </button>
-          <button
-            class="text-xs text-gray-500 hover:text-red-400 disabled:opacity-0"
-            :disabled="(store.cardJson?.data.alternate_greetings.length ?? 0) <= 1"
-            @click="removeGreeting(index)"
-          >✕</button>
+      <div
+        v-for="(greeting, index) in store.cardJson?.data.alternate_greetings ?? []"
+        :key="index"
+        class="border border-gray-700 rounded p-2"
+      >
+        <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center gap-1">
+            <span class="drag-handle cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 select-none">⠿</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              class="px-2 py-0.5 text-xs rounded text-green-200"
+              :class="greeting.trim() ? 'bg-green-800 hover:bg-green-700' : 'bg-green-900 opacity-50 cursor-default'"
+              :disabled="!greeting.trim()"
+              @click="emit('startChat', greeting)"
+            >
+              ▶ Start Chat
+            </button>
+            <button
+              class="text-xs text-gray-500 hover:text-red-400 disabled:opacity-0"
+              :disabled="(store.cardJson?.data.alternate_greetings.length ?? 0) <= 1"
+              @click="removeGreeting(index)"
+            >✕</button>
+          </div>
         </div>
+        <MarkdownField :model-value="greeting" @update:model-value="(v: string) => updateGreeting(index, v)" />
       </div>
-      <MarkdownField :model-value="greeting" @update:model-value="(v: string) => updateGreeting(index, v)" />
     </div>
   </CollapsibleSection>
 </template>
