@@ -14,6 +14,13 @@
   into Pinia store with `flushSave()` and `toPlain()` to strip reactive
   proxies before IDB write (fixes DataCloneError). Pending changes are
   flushed before card switching.
+- Card list only reorders on actual edits, not on card switch
+  (`flushSave` skips if no pending save timer; watch filters out
+  card-load triggers via reference equality check)
+- All textareas now auto-grow to fit content (no scrollbar, no resize
+  handle) via `v-grow` directive
+- Extracted EntryCard to separate SFC, fixing runtime template compiler
+  warning when adding lore entries
 
 ## [0.1.0] — 2026-06-06
 
