@@ -10,7 +10,7 @@ import ExtensionsEditor from './ExtensionsEditor.vue'
 const store = useEditorStore()
 const { updateCard } = useCards()
 
-const { values, resetForm, handleSubmit } = useForm({
+const { values, resetForm } = useForm({
   validationSchema: toTypedSchema(cardDataSchema),
 })
 
@@ -19,15 +19,23 @@ function syncToStore() {
   store.cardJson.data = values as typeof store.cardJson.data
 }
 
-const autoSave = handleSubmit(() => {
-  if (!store.cardJson || !store.activeCardId || store.activeCardId === -1) return
-  syncToStore()
-  updateCard(store.activeCardId, store.cardJson)
-})
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+function scheduleSave() {
+  if (saveTimer) clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => {
+    if (!store.cardJson || !store.activeCardId || store.activeCardId === -1) return
+    syncToStore()
+    updateCard(store.activeCardId, store.cardJson)
+  }, 500)
+}
 
 watch(values, () => {
   syncToStore()
-  autoSave()
+  scheduleSave()
+}, { deep: true })
+
+watch(() => store.cardJson, () => {
+  scheduleSave()
 }, { deep: true })
 
 watch(() => store.cardJson, (json) => {
