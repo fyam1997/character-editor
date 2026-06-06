@@ -1,15 +1,25 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import ExtensionsEditor from './ExtensionsEditor.vue'
 
 const store = useEditorStore()
+const rawTags = ref('')
 
 watch(() => store.cardJson?.data, (newVal, oldVal) => {
   if (newVal && oldVal && newVal === oldVal) {
     store.scheduleSave()
   }
 }, { deep: true })
+
+watch(() => store.cardJson?.data.tags, (t) => {
+  rawTags.value = t?.join(', ') ?? ''
+}, { immediate: true })
+
+function commitTags() {
+  if (!store.cardJson) return
+  store.cardJson.data.tags = rawTags.value.split(',').map((s) => s.trim()).filter(Boolean)
+}
 </script>
 
 <template>
@@ -31,10 +41,11 @@ watch(() => store.cardJson?.data, (newVal, oldVal) => {
         </div>
       </div>
       <div class="mt-3">
-        <label class="text-xs text-gray-400 block mb-1">Tags</label>
+        <label class="text-xs text-gray-400 block mb-1">Tags (comma-separated)</label>
         <input
-          :value="store.cardJson.data.tags?.join(', ')"
-          @input="(e: any) => { store.cardJson!.data.tags = e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) }"
+          v-model="rawTags"
+          @blur="commitTags"
+          @keydown.enter="commitTags"
           placeholder="tag1, tag2, tag3"
           class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
         />

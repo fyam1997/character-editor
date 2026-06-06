@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { CharacterBookEntry } from '../types'
 
 const props = defineProps<{
@@ -14,6 +14,24 @@ const emit = defineEmits<{
 }>()
 
 const showAdvanced = ref(false)
+const rawKeys = ref('')
+const rawSecKeys = ref('')
+
+watch(() => props.entry.keys, (k) => {
+  rawKeys.value = k?.join(', ') ?? ''
+}, { immediate: true })
+
+watch(() => props.entry.secondary_keys, (k) => {
+  rawSecKeys.value = k?.join(', ') ?? ''
+}, { immediate: true })
+
+function commitKeys() {
+  ;(props.entry as CharacterBookEntry).keys = rawKeys.value.split(',').map(s => s.trim()).filter(Boolean)
+}
+
+function commitSecKeys() {
+  ;(props.entry as CharacterBookEntry).secondary_keys = rawSecKeys.value.split(',').map(s => s.trim()).filter(Boolean)
+}
 
 function update<K extends keyof CharacterBookEntry>(key: K, value: CharacterBookEntry[K]) {
   (props.entry as CharacterBookEntry)[key] = value
@@ -53,14 +71,15 @@ function update<K extends keyof CharacterBookEntry>(key: K, value: CharacterBook
       >✕</button>
     </div>
     <div class="p-3 space-y-2">
-      <div>
-        <label class="text-xs text-gray-400 block mb-0.5">Keys (comma-separated)</label>
-        <input
-          :value="entry.keys?.join(', ')"
-          @input="update('keys', ($event.target as HTMLInputElement).value.split(',').map(s => s.trim()).filter(Boolean))"
-          class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
-        />
-      </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-0.5">Keys (comma-separated)</label>
+          <input
+            v-model="rawKeys"
+            @blur="commitKeys"
+            @keydown.enter="commitKeys"
+            class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
+          />
+        </div>
       <div>
         <label class="text-xs text-gray-400 block mb-0.5">Content</label>
         <textarea
@@ -127,8 +146,9 @@ function update<K extends keyof CharacterBookEntry>(key: K, value: CharacterBook
         <div v-if="entry.selective">
           <label class="text-xs text-gray-400 block mb-0.5">Secondary Keys (comma-separated)</label>
           <input
-            :value="entry.secondary_keys?.join(', ')"
-            @input="update('secondary_keys', ($event.target as HTMLInputElement).value.split(',').map(s => s.trim()).filter(Boolean))"
+            v-model="rawSecKeys"
+            @blur="commitSecKeys"
+            @keydown.enter="commitSecKeys"
             class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
           />
         </div>
