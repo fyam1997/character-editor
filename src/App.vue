@@ -33,7 +33,7 @@ function onStartChat(greeting: string) {
         <div v-if="!store.isActive" class="text-gray-500 text-center mt-20">
           Select or create a card to start editing
         </div>
-        <div v-else class="space-y-2 max-w-2xl">
+        <div v-else class="space-y-2 max-w-2xl mx-auto">
           <InfoPanel />
           <CharacterPanel />
           <OverridePromptPanel />
