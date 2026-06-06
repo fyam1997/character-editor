@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { marked } from 'marked'
 
 const props = defineProps<{
@@ -22,6 +22,7 @@ const rendered = computed(() => {
 function startEdit() {
   editing.value = true
   buffer.value = props.modelValue
+  nextTick(() => textarea.value?.focus())
 }
 
 function commit() {
@@ -53,6 +54,7 @@ function onKeydown(e: KeyboardEvent) {
       @input="buffer = ($event.target as HTMLTextAreaElement).value"
       @blur="commit"
       @keydown="onKeydown"
+      v-grow
       class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
     ></textarea>
   </div>
