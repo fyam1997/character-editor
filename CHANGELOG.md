@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.5] — 2026-06-07
+
+### Added
+- Lore entries concatenated with `\n` and wrapped in a single system message
+  `[Details of the fictional world the RP is set in:\n...]` for both before-char
+  and after-char positions
+- Greeting list and lore entry list use stable local IDs (instead of index or content)
+  as Vue keys so drag-and-drop reorder works without refresh
+- Lore entries now render markdown in chat via `MarkdownField` (`readonly` mode)
+- `sortInsertionOrder` button assigns insertion_order from 100 in descending order
+
+### Changed
+- Chat messages render as markdown (including dialogue highlighting) instead of
+  raw text
+- `MarkdownField` accepts a `readonly` prop to render markdown without edit controls
+
 ## [0.1.4] — 2026-06-07
 
 ### Added
