@@ -61,21 +61,20 @@ function removeGreeting(index: number) {
     >
       <div class="flex items-center justify-between mb-1">
         <span class="text-xs text-gray-500">Greeting {{ index + 1 }}</span>
-        <div class="flex gap-1">
+        <div class="flex items-center gap-2">
           <button
-            class="px-2 py-0.5 text-xs bg-green-800 hover:bg-green-700 rounded text-green-200"
+            class="px-2 py-0.5 text-xs rounded text-green-200"
+            :class="greeting.trim() ? 'bg-green-800 hover:bg-green-700' : 'bg-green-900 opacity-50 cursor-default'"
+            :disabled="!greeting.trim()"
             @click="emit('startChat', greeting)"
           >
             ▶ Start Chat
           </button>
           <button
-            class="px-2 py-0.5 text-xs bg-gray-700 rounded disabled:opacity-30"
-            :class="(store.cardJson?.data.alternate_greetings.length ?? 0) > 1 ? 'hover:bg-red-800' : ''"
+            class="text-xs text-gray-500 hover:text-red-400 disabled:opacity-0"
             :disabled="(store.cardJson?.data.alternate_greetings.length ?? 0) <= 1"
             @click="removeGreeting(index)"
-          >
-            ✕
-          </button>
+          >✕</button>
         </div>
       </div>
       <MarkdownField :model-value="greeting" @update:model-value="(v: string) => updateGreeting(index, v)" />

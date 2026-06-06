@@ -60,3 +60,12 @@ export type CardRecord = {
   createdAt: string
   updatedAt: string
 }
+
+export type ChatSession = {
+  id?: number
+  cardId: number
+  name: string
+  createdAt: string
+  updatedAt: string
+  messages: ChatMessage[]
+}

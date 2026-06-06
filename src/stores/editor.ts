@@ -1,7 +1,15 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { CharacterCardV2, CardRecord } from '../types'
+import { ref, computed, watch } from 'vue'
+import type { CharacterCardV2, CardRecord, ChatSession, ChatMessage } from '../types'
 import { db } from '../storage/db'
+
+function loadApiConfig() {
+  try {
+    const saved = localStorage.getItem('apiConfig')
+    if (saved) return JSON.parse(saved)
+  } catch {}
+  return null
+}
 
 export const useEditorStore = defineStore('editor', () => {
   const activeCardId = ref<number | null>(null)
@@ -9,13 +17,22 @@ export const useEditorStore = defineStore('editor', () => {
   const cards = ref<CardRecord[]>([])
   const pngBlob = ref<Blob | undefined>(undefined)
 
-  const apiConfig = ref({
+  const saved = loadApiConfig()
+  const apiConfig = ref(saved ?? {
     baseUrl: 'https://api.openai.com/v1',
     apiKey: '',
     model: 'gpt-4o',
   })
 
+  watch(apiConfig, (v) => {
+    localStorage.setItem('apiConfig', JSON.stringify(v))
+  }, { deep: true })
+
   const isActive = computed(() => activeCardId.value !== null)
+
+  // chat sessions
+  const sessions = ref<ChatSession[]>([])
+  const activeSessionId = ref<number | null>(null)
 
   let saveTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -100,11 +117,89 @@ export const useEditorStore = defineStore('editor', () => {
 
   async function deleteCard(id: number) {
     await db.cards.delete(id)
+    await db.chatSessions.where('cardId').equals(id).delete()
     if (activeCardId.value === id) {
       clearActiveCard()
     }
     await loadCards()
+    await loadSessionsForCard()
   }
+
+  // --- chat sessions ---
+
+  async function loadSessionsForCard() {
+    const cardId = activeCardId.value
+    if (!cardId) {
+      sessions.value = []
+      return
+    }
+    sessions.value = await db.chatSessions
+      .where('cardId').equals(cardId)
+      .reverse()
+      .sortBy('updatedAt')
+  }
+
+  async function createSession(greeting: string) {
+    const cardId = activeCardId.value
+    if (!cardId) return
+    const now = new Date().toISOString()
+    const id = await db.chatSessions.add({
+      cardId,
+      name: new Date().toLocaleString(),
+      createdAt: now,
+      updatedAt: now,
+      messages: [
+        { role: 'system' as const, content: JSON.stringify(cardJson.value, null, 2) },
+        { role: 'assistant' as const, content: greeting },
+      ],
+    })
+    await loadSessionsForCard()
+    activeSessionId.value = id ?? null
+  }
+
+  async function selectSession(id: number) {
+    activeSessionId.value = id
+  }
+
+  async function deleteSession(id: number) {
+    await db.chatSessions.delete(id)
+    if (activeSessionId.value === id) {
+      activeSessionId.value = null
+    }
+    await loadSessionsForCard()
+  }
+
+  async function addMessage(msg: ChatMessage) {
+    const sid = activeSessionId.value
+    if (sid == null) return
+    const session = await db.chatSessions.get(sid) as ChatSession | undefined
+    if (!session) return
+    session.messages.push(msg)
+    session.updatedAt = new Date().toISOString()
+    await db.chatSessions.put(session)
+    const idx = sessions.value.findIndex((s) => s.id === sid)
+    if (idx !== -1) sessions.value[idx] = session
+  }
+
+  async function updateLastAssistant(content: string) {
+    const sid = activeSessionId.value
+    if (sid == null) return
+    const session = await db.chatSessions.get(sid) as ChatSession | undefined
+    if (!session || session.messages.length === 0) return
+    const last = session.messages[session.messages.length - 1]
+    if (last.role === 'assistant') {
+      last.content = content
+      session.updatedAt = new Date().toISOString()
+      await db.chatSessions.put(session)
+      const idx = sessions.value.findIndex((s) => s.id === sid)
+      if (idx !== -1) sessions.value[idx] = session
+    }
+  }
+
+  const activeMessages = computed<ChatMessage[]>(() => {
+    const session = sessions.value.find((s) => s.id === activeSessionId.value)
+    return session?.messages ?? []
+  })
 
   return {
     activeCardId,
@@ -113,6 +208,8 @@ export const useEditorStore = defineStore('editor', () => {
     pngBlob,
     apiConfig,
     isActive,
+    sessions,
+    activeSessionId,
     setActiveCard,
     clearActiveCard,
     scheduleSave,
@@ -122,5 +219,12 @@ export const useEditorStore = defineStore('editor', () => {
     getCard,
     deleteCard,
     updatePng,
+    loadSessionsForCard,
+    createSession,
+    selectSession,
+    deleteSession,
+    addMessage,
+    updateLastAssistant,
+    activeMessages,
   }
 })
