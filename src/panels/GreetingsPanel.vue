@@ -2,6 +2,7 @@
 import { watch } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import CollapsibleSection from '../components/CollapsibleSection.vue'
+import MarkdownField from '../components/MarkdownField.vue'
 
 const emit = defineEmits<{
   startChat: [greeting: string]
@@ -77,12 +78,7 @@ function removeGreeting(index: number) {
           </button>
         </div>
       </div>
-      <textarea
-        :value="greeting"
-        @input="(e: any) => updateGreeting(index, e.target.value)"
-        v-grow
-        class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
-      ></textarea>
+      <MarkdownField :model-value="greeting" @update:model-value="(v: string) => updateGreeting(index, v)" />
     </div>
   </CollapsibleSection>
 </template>

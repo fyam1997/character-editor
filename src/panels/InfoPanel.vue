@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import CollapsibleSection from '../components/CollapsibleSection.vue'
+import MarkdownField from '../components/MarkdownField.vue'
 
 const store = useEditorStore()
 const rawTags = ref('')
@@ -77,7 +78,7 @@ function pickImage() {
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">Creator Notes</label>
-          <textarea v-model="store.cardJson.data.creator_notes" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
+          <MarkdownField v-model="store.cardJson.data.creator_notes" />
         </div>
       </div>
     </div>

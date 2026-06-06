@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.2] — 2026-06-06
+
+### Added
+- All text fields now show rendered markdown by default (click to edit raw)
+- MarkdownField component with dark-themed styling for headings, code, links, blockquotes
+
 ## [0.1.1] — 2026-06-06
 
 ### Fixed
