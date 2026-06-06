@@ -6,6 +6,8 @@ import type { CharacterCardV2 } from '../types'
 
 const store = useEditorStore()
 
+const appVersion = __APP_VERSION__
+
 onMounted(() => store.loadCards())
 
 async function handleImport() {
@@ -122,9 +124,12 @@ async function newCard() {
 
 <template>
   <aside class="w-56 bg-gray-900 border-r border-gray-700 flex flex-col h-screen">
-    <div class="p-3 border-b border-gray-700 flex items-center gap-1">
-      <span class="text-lg">🎭</span>
-      <span class="font-bold text-gray-200 text-xs">Character Editor</span>
+    <div class="p-3 border-b border-gray-700">
+      <div class="flex items-center gap-1">
+        <span class="text-lg">🎭</span>
+        <span class="font-bold text-gray-200 text-xs">Character Editor</span>
+      </div>
+      <div class="text-[10px] text-gray-500 mt-0.5">v{{ appVersion }}</div>
     </div>
     <div class="p-2 border-b border-gray-700 flex gap-1">
       <button
