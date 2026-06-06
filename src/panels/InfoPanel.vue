@@ -37,18 +37,18 @@ function pickImage() {
   <CollapsibleSection title="Info" v-if="store.cardJson">
     <div class="flex gap-4">
       <div
-        class="w-24 h-24 shrink-0 border border-gray-700 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden bg-gray-900"
+        class="w-24 shrink-0 border border-gray-700 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden bg-gray-900 self-stretch"
         @click="pickImage"
       >
         <img v-if="previewUrl" :src="previewUrl" class="w-full h-full object-cover" />
         <span v-else class="text-2xl text-gray-600">+</span>
       </div>
-      <div class="flex-1 min-w-0">
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Name</label>
-            <input v-model="store.cardJson.data.name" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200" />
-          </div>
+      <div class="flex-1 min-w-0 flex flex-col gap-3">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Name</label>
+          <input v-model="store.cardJson.data.name" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-gray-400 block mb-1">Creator</label>
             <input v-model="store.cardJson.data.creator" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200" />
