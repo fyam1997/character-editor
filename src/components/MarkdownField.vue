@@ -61,50 +61,55 @@ function onKeydown(e: KeyboardEvent) {
 </template>
 
 <style scoped>
-.markdown-preview h1,
-.markdown-preview h2,
-.markdown-preview h3,
-.markdown-preview h4 {
+.markdown-preview :deep(h1),
+.markdown-preview :deep(h2),
+.markdown-preview :deep(h3),
+.markdown-preview :deep(h4) {
   font-size: inherit;
   font-weight: 700;
   margin: 0.5em 0 0.25em;
 }
-.markdown-preview p {
+.markdown-preview :deep(p) {
   margin: 0.25em 0;
 }
-.markdown-preview ul,
-.markdown-preview ol {
+.markdown-preview :deep(ul) {
   padding-left: 1.5em;
   margin: 0.25em 0;
-}
-.markdown-preview li {
   list-style: disc;
 }
-.markdown-preview code {
+.markdown-preview :deep(ol) {
+  padding-left: 1.5em;
+  margin: 0.25em 0;
+  list-style: decimal;
+}
+.markdown-preview :deep(li) {
+  margin: 0.125em 0;
+}
+.markdown-preview :deep(code) {
   background: rgb(55 65 81);
   padding: 0.125em 0.25em;
   border-radius: 0.25em;
   font-size: 0.9em;
 }
-.markdown-preview pre code {
+.markdown-preview :deep(pre code) {
   display: block;
   padding: 0.5em;
   overflow-x: auto;
 }
-.markdown-preview a {
+.markdown-preview :deep(a) {
   color: rgb(96 165 250);
   text-decoration: underline;
 }
-.markdown-preview blockquote {
+.markdown-preview :deep(blockquote) {
   border-left: 3px solid rgb(75 85 99);
   padding-left: 0.75em;
   margin: 0.25em 0;
   color: rgb(156 163 175);
 }
-.markdown-preview strong {
+.markdown-preview :deep(strong) {
   font-weight: 700;
 }
-.markdown-preview em {
+.markdown-preview :deep(em) {
   font-style: italic;
 }
 </style>
