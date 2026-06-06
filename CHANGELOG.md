@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.1-alpha] — 2026-06-06
+
+### Fixed
+- New card now saves to IndexedDB immediately, appears in card list
+- Base Spec form no longer uses VeeValidate for data ownership — binds
+  directly to the store, fixing Add Greeting and Add Lore Book buttons
+  not responding (was caused by `syncToStore` replacing `cardJson.data`
+  with a VeeValidate proxy, breaking nested reactivity)
+- Removed VeeValidate `useField` from all form components; store is now
+  the single source of truth, VeeValidate retained for validation only
+- Auto-save now properly persists edits to IndexedDB. Moved save logic
+  into Pinia store with `flushSave()` and `toPlain()` to strip reactive
+  proxies before IDB write (fixes DataCloneError). Pending changes are
+  flushed before card switching.
+
 ## [0.1.0] — 2026-06-06
 
 ### Added
