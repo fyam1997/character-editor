@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { watch } from 'vue'
 import { useEditorStore } from '../stores/editor'
 
 const emit = defineEmits<{
@@ -8,29 +8,34 @@ const emit = defineEmits<{
 
 const store = useEditorStore()
 
-const greetings = computed({
-  get: () => store.cardJson?.data.alternate_greetings ?? [],
-  set: (val: string[]) => {
-    if (store.cardJson) {
-      store.cardJson.data.alternate_greetings = val
-    }
-  },
-})
+watch(() => store.cardJson, (json) => {
+  if (!json) return
+  const f = json.data.first_mes
+  const g = json.data.alternate_greetings
+  if (f && g.length === 0) {
+    g.push(f)
+  }
+}, { immediate: true })
 
 function updateGreeting(index: number, value: string) {
-  const g = [...greetings.value]
-  g[index] = value
-  store.cardJson!.data.alternate_greetings = g
+  if (!store.cardJson) return
+  store.cardJson.data.alternate_greetings[index] = value
+  if (index === 0) {
+    store.cardJson.data.first_mes = value
+  }
 }
 
 function addGreeting() {
-  const g = [...greetings.value, '']
-  store.cardJson!.data.alternate_greetings = g
+  if (!store.cardJson) return
+  store.cardJson.data.alternate_greetings.push('')
 }
 
 function removeGreeting(index: number) {
-  const g = greetings.value.filter((_, i) => i !== index)
-  store.cardJson!.data.alternate_greetings = g
+  if (!store.cardJson) return
+  store.cardJson.data.alternate_greetings.splice(index, 1)
+  if (index === 0) {
+    store.cardJson.data.first_mes = store.cardJson.data.alternate_greetings[0] ?? ''
+  }
 }
 </script>
 
@@ -45,11 +50,11 @@ function removeGreeting(index: number) {
         + Add Greeting
       </button>
     </div>
-    <div v-if="greetings.length === 0" class="text-xs text-gray-600 py-2">
-      No alternate greetings. Add one, or use the First Message from the spec.
+    <div v-if="!store.cardJson || store.cardJson.data.alternate_greetings.length === 0" class="text-xs text-gray-600 py-2">
+      No greetings yet.
     </div>
     <div
-      v-for="(greeting, index) in greetings"
+      v-for="(greeting, index) in store.cardJson?.data.alternate_greetings ?? []"
       :key="index"
       class="mb-2 border border-gray-700 rounded p-2"
     >
