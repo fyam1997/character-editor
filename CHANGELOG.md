@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.3] — 2026-06-07
+
+### Added
+- Chat room header with inline system config panel on the right
+- System Prompts section (Main Prompt, Auxiliary Prompt, Post-History Prompt)
+- Prompt assembly engine: builds structured system messages from card data,
+  lorebook, and prompts with `{{char}}`/`{{user}}` placeholder replacement
+- Example Chat field to Character panel
+- `mes_example` is parsed and injected as example dialogue in chat context
+
+### Changed
+- System Config moved from modal overlay to a side panel within the chat
+  section, split into two collapsible groups (AI API Config, System Prompts)
+- ChatRoom uses assembled prompt pipeline instead of raw card JSON dump
+- Chat messages now skip old-format system message and use structured prompts
+
+### Fixed
+- Message deletion now re-fetches session from IndexedDB before mutating
+
 ## [0.1.2] — 2026-06-06
 
 ### Added
