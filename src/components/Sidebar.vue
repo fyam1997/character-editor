@@ -32,25 +32,26 @@ async function handleImport() {
     }
     if (json.spec !== 'chara_card_v2') {
       const root = json as Record<string, unknown>
-      if (root.name !== undefined || root.description !== undefined) {
+      const src = (root.data as Record<string, unknown>) ?? root
+      if (src.name !== undefined || src.description !== undefined) {
         json = {
           spec: 'chara_card_v2',
           spec_version: '2.0',
           data: {
-            name: (root.name as string) ?? '',
-            description: (root.description as string) ?? '',
-            personality: (root.personality as string) ?? '',
-            scenario: (root.scenario as string) ?? '',
-            first_mes: (root.first_mes as string) ?? '',
-            mes_example: (root.mes_example as string) ?? '',
-            creator_notes: (root.creator_notes as string) ?? '',
-            system_prompt: (root.system_prompt as string) ?? '',
-            post_history_instructions: (root.post_history_instructions as string) ?? '',
-            alternate_greetings: (root.alternate_greetings as string[]) ?? [],
-            tags: (root.tags as string[]) ?? [],
-            creator: (root.creator as string) ?? '',
-            character_version: (root.character_version as string) ?? '',
-            extensions: (root.extensions as Record<string, unknown>) ?? {},
+            name: (src.name as string) ?? '',
+            description: (src.description as string) ?? '',
+            personality: (src.personality as string) ?? '',
+            scenario: (src.scenario as string) ?? '',
+            first_mes: (src.first_mes as string) ?? '',
+            mes_example: (src.mes_example as string) ?? '',
+            creator_notes: (src.creator_notes as string) ?? '',
+            system_prompt: (src.system_prompt as string) ?? '',
+            post_history_instructions: (src.post_history_instructions as string) ?? '',
+            alternate_greetings: (src.alternate_greetings as string[]) ?? [],
+            tags: (src.tags as string[]) ?? [],
+            creator: (src.creator as string) ?? '',
+            character_version: (src.character_version as string) ?? '',
+            extensions: (src.extensions as Record<string, unknown>) ?? {},
           },
         }
       } else {
