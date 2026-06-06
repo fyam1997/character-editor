@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import { streamChat } from '../utils/api'
+import { assembleApiMessages } from '../utils/prompt-assembly'
 import type { ChatMessage } from '../types'
 import { db } from '../storage/db'
 
@@ -15,10 +16,19 @@ const sending = ref(false)
 const abortController = ref<AbortController | null>(null)
 const chatEl = ref<HTMLElement | null>(null)
 const showSessions = ref(false)
+const showPrompts = ref(false)
 
 const activeSessionName = computed(() => {
   const s = store.sessions.find((s) => s.id === store.activeSessionId)
   return s?.name ?? ''
+})
+
+const assembledPrompts = computed(() => {
+  const sid = store.activeSessionId
+  if (!sid || !store.cardJson) return []
+  const s = store.sessions.find((s) => s.id === sid)
+  if (!s) return []
+  return assembleApiMessages(store.cardJson, store.systemPrompts, s.messages)
 })
 
 onMounted(() => store.loadSessionsForCard())
@@ -37,7 +47,7 @@ watch(() => props.greeting, async () => {
   if (!props.greeting.trim()) return
   await store.loadSessionsForCard()
   const existing = store.sessions.find(
-    (s) => s.messages[1]?.content === props.greeting
+    (s) => s.messages[0]?.content === props.greeting
   )
   if (existing && existing.id != null) {
     await store.selectSession(existing.id)
@@ -59,10 +69,7 @@ async function sendMessage() {
   const session = store.sessions.find((s) => s.id === store.activeSessionId)
   if (!session) { sending.value = false; return }
 
-  const apiMessages = session.messages.map((m) => ({
-    role: m.role as 'system' | 'user' | 'assistant',
-    content: m.content,
-  }))
+  const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages)
 
   abortController.value = new AbortController()
   let assistantContent = ''
@@ -148,6 +155,19 @@ function scrollToBottom() {
           No sessions yet
         </div>
       </div>
+    </div>
+
+    <div class="flex items-center gap-2 mb-1">
+      <button
+        class="text-xs text-gray-500 hover:text-gray-300 select-none"
+        @click="showPrompts = !showPrompts"
+      >
+        <span class="mr-1">{{ showPrompts ? '▼' : '▶' }}</span>
+        Assembled Prompts ({{ assembledPrompts.length }})
+      </button>
+    </div>
+    <div v-if="showPrompts && assembledPrompts.length > 0" class="mb-2 max-h-60 overflow-y-auto border border-gray-700 rounded bg-gray-900 text-xs">
+      <pre class="p-2 text-gray-300 whitespace-pre-wrap break-words">{{ JSON.stringify(assembledPrompts, null, 2) }}</pre>
     </div>
 
     <div ref="chatEl" class="flex-1 overflow-y-auto mb-3 pr-1 flex flex-col" :class="{ 'space-y-3': store.activeMessages.length > 0 }">

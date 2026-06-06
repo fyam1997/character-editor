@@ -50,6 +50,7 @@ export type CharacterBookEntry = {
 export type ChatMessage = {
   role: 'system' | 'user' | 'assistant'
   content: string
+  name?: string
 }
 
 export type CardRecord = {

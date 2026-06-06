@@ -169,7 +169,6 @@ export const useEditorStore = defineStore('editor', () => {
       createdAt: now,
       updatedAt: now,
       messages: [
-        { role: 'system' as const, content: JSON.stringify(cardJson.value, null, 2) },
         { role: 'assistant' as const, content: greeting },
       ],
     })
