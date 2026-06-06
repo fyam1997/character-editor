@@ -73,8 +73,8 @@ function removeGreeting(index: number) {
       <textarea
         :value="greeting"
         @input="(e: any) => updateGreeting(index, e.target.value)"
-        rows="3"
-        class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y"
+        v-grow
+        class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
       ></textarea>
     </div>
   </div>

@@ -170,8 +170,8 @@ const EntryCard = defineComponent({
           <textarea
             :value="entry.content"
             @input="update('content', ($event.target as HTMLInputElement).value)"
-            rows="3"
-            class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y"
+            v-grow
+            class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
           ></textarea>
         </div>
 

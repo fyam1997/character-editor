@@ -71,8 +71,8 @@ refreshKeys()
       <textarea
         :value="getExtValue(key)"
         @input="(e: any) => setExtValue(key, e.target.value)"
-        rows="2"
-        class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y font-mono"
+        v-grow
+        class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 font-mono"
       ></textarea>
     </div>
   </div>

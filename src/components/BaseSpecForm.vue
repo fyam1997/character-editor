@@ -34,35 +34,35 @@ watch(() => store.cardJson?.data, (newVal, oldVal) => {
 
     <div>
       <label class="text-xs text-gray-400 block mb-1">Description</label>
-      <textarea v-model="store.cardJson.data.description" rows="3" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y"></textarea>
+      <textarea v-model="store.cardJson.data.description" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
     </div>
     <div>
       <label class="text-xs text-gray-400 block mb-1">Personality</label>
-      <textarea v-model="store.cardJson.data.personality" rows="3" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y"></textarea>
+      <textarea v-model="store.cardJson.data.personality" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
     </div>
     <div>
       <label class="text-xs text-gray-400 block mb-1">Scenario</label>
-      <textarea v-model="store.cardJson.data.scenario" rows="2" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y"></textarea>
+      <textarea v-model="store.cardJson.data.scenario" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
     </div>
     <div>
       <label class="text-xs text-gray-400 block mb-1">First Message</label>
-      <textarea v-model="store.cardJson.data.first_mes" rows="3" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y"></textarea>
+      <textarea v-model="store.cardJson.data.first_mes" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
     </div>
     <div>
       <label class="text-xs text-gray-400 block mb-1">Example Messages</label>
-      <textarea v-model="store.cardJson.data.mes_example" rows="4" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y font-mono"></textarea>
+      <textarea v-model="store.cardJson.data.mes_example" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 font-mono"></textarea>
     </div>
     <div>
       <label class="text-xs text-gray-400 block mb-1">Creator Notes</label>
-      <textarea v-model="store.cardJson.data.creator_notes" rows="2" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y"></textarea>
+      <textarea v-model="store.cardJson.data.creator_notes" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"></textarea>
     </div>
     <div>
       <label class="text-xs text-gray-400 block mb-1">System Prompt</label>
-      <textarea v-model="store.cardJson.data.system_prompt" rows="4" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y font-mono"></textarea>
+      <textarea v-model="store.cardJson.data.system_prompt" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 font-mono"></textarea>
     </div>
     <div>
       <label class="text-xs text-gray-400 block mb-1">Post-History Instructions</label>
-      <textarea v-model="store.cardJson.data.post_history_instructions" rows="3" class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-y font-mono"></textarea>
+      <textarea v-model="store.cardJson.data.post_history_instructions" v-grow class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 font-mono"></textarea>
     </div>
     <div>
       <label class="text-xs text-gray-400 block mb-1">Tags</label>
