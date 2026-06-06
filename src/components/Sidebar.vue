@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 import { useCards } from '../storage/useCards'
 import { useEditorStore } from '../stores/editor'
-import { isPng, extractJsonFromPng } from '../utils/png'
+import { isPng, extractJsonFromPng, embedJsonInPng } from '../utils/png'
 import type { CharacterCardV2 } from '../types'
 
 const emit = defineEmits<{
@@ -66,9 +66,7 @@ async function handleExport(type: 'json' | 'png') {
   } else if (type === 'png') {
     if (card?.pngBlob) {
       const pngBytes = await card.pngBlob.arrayBuffer()
-      const blob = await import('../utils/png').then((m) =>
-        m.embedJsonInPng(pngBytes, json)
-      )
+      const blob = embedJsonInPng(pngBytes, json)
       downloadBlob(blob, `${name}.png`)
     } else {
       alert('No PNG image to export. Import a PNG card first, or export as JSON.')

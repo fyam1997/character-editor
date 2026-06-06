@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import SystemConfig from './components/SystemConfig.vue'
+import BaseSpecForm from './components/BaseSpecForm.vue'
 import { useEditorStore } from './stores/editor'
 
 const store = useEditorStore()
@@ -16,8 +17,14 @@ const showConfig = ref(false)
         <div v-if="!store.isActive" class="text-gray-500 text-center mt-20">
           Select or create a card to start editing
         </div>
-        <div v-else class="space-y-6 max-w-2xl">
-          <p class="text-xs text-gray-500">Spec editor — coming next</p>
+        <div v-else class="space-y-8 max-w-2xl">
+          <BaseSpecForm />
+          <div class="text-xs text-gray-500 border-t border-gray-700 pt-4">
+            Greetings — coming next
+          </div>
+          <div class="text-xs text-gray-500 border-t border-gray-700 pt-4">
+            Lore Book — coming next
+          </div>
         </div>
       </section>
       <section class="flex-1 p-4 overflow-y-auto">

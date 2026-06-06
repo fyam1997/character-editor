@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vee-validate/zod": "^4.15.1",
     "dexie": "^4.4.3",
     "pinia": "^3.0.4",
     "vee-validate": "^4.15.0",
