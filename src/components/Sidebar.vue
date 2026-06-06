@@ -31,8 +31,32 @@ async function handleImport() {
       json = JSON.parse(new TextDecoder().decode(buf)) as CharacterCardV2
     }
     if (json.spec !== 'chara_card_v2') {
-      alert('Only V2 character cards are supported')
-      return
+      const root = json as Record<string, unknown>
+      if (root.name !== undefined || root.description !== undefined) {
+        json = {
+          spec: 'chara_card_v2',
+          spec_version: '2.0',
+          data: {
+            name: (root.name as string) ?? '',
+            description: (root.description as string) ?? '',
+            personality: (root.personality as string) ?? '',
+            scenario: (root.scenario as string) ?? '',
+            first_mes: (root.first_mes as string) ?? '',
+            mes_example: (root.mes_example as string) ?? '',
+            creator_notes: (root.creator_notes as string) ?? '',
+            system_prompt: (root.system_prompt as string) ?? '',
+            post_history_instructions: (root.post_history_instructions as string) ?? '',
+            alternate_greetings: (root.alternate_greetings as string[]) ?? [],
+            tags: (root.tags as string[]) ?? [],
+            creator: (root.creator as string) ?? '',
+            character_version: (root.character_version as string) ?? '',
+            extensions: (root.extensions as Record<string, unknown>) ?? {},
+          },
+        }
+      } else {
+        alert('Unrecognized card format')
+        return
+      }
     }
     const id = await store.addCard(json, pngBlob)
     await store.setActiveCard(id!, json)
