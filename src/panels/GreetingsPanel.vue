@@ -32,7 +32,7 @@ function addGreeting() {
 }
 
 function removeGreeting(index: number) {
-  if (!store.cardJson) return
+  if (!store.cardJson || store.cardJson.data.alternate_greetings.length <= 1) return
   store.cardJson.data.alternate_greetings.splice(index, 1)
   if (index === 0) {
     store.cardJson.data.first_mes = store.cardJson.data.alternate_greetings[0] ?? ''
@@ -68,7 +68,9 @@ function removeGreeting(index: number) {
             ▶ Start Chat
           </button>
           <button
-            class="px-2 py-0.5 text-xs bg-gray-700 hover:bg-red-800 rounded"
+            class="px-2 py-0.5 text-xs bg-gray-700 rounded disabled:opacity-30"
+            :class="(store.cardJson?.data.alternate_greetings.length ?? 0) > 1 ? 'hover:bg-red-800' : ''"
+            :disabled="(store.cardJson?.data.alternate_greetings.length ?? 0) <= 1"
             @click="removeGreeting(index)"
           >
             ✕

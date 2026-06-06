@@ -101,7 +101,7 @@ async function newCard() {
       creator_notes: '',
       system_prompt: '',
       post_history_instructions: '',
-      alternate_greetings: [],
+      alternate_greetings: [''],
       tags: [],
       creator: '',
       character_version: '',
