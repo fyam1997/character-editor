@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
-import { isPng, extractJsonFromPng, embedJsonInPng } from '../utils/png'
+import { isPng, extractJsonFromPng } from '../utils/png'
 import type { CharacterCardV2 } from '../types'
 
 const emit = defineEmits<{
@@ -51,42 +51,6 @@ async function removeCard(id: number) {
   await store.deleteCard(id)
 }
 
-function prepareExport(): CharacterCardV2 | null {
-  if (!store.cardJson) return null
-  const plain: CharacterCardV2 = JSON.parse(JSON.stringify(store.cardJson))
-  const greetings = plain.data.alternate_greetings
-  plain.data.first_mes = greetings[0] ?? ''
-  plain.data.alternate_greetings = greetings.slice(1)
-  return plain
-}
-
-async function handleExport(type: 'json' | 'png') {
-  const json = prepareExport()
-  if (!json) return
-  const name = json.data.name || 'character'
-  if (type === 'json') {
-    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' })
-    downloadBlob(blob, `${name}.json`)
-  } else if (type === 'png') {
-    if (store.pngBlob) {
-      const pngBytes = await store.pngBlob.arrayBuffer()
-      const blob = embedJsonInPng(pngBytes, json)
-      downloadBlob(blob, `${name}.png`)
-    } else {
-      alert('No PNG image to export. Import a PNG card first, or export as JSON.')
-    }
-  }
-}
-
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 async function newCard() {
   const empty: CharacterCardV2 = {
     spec: 'chara_card_v2',
@@ -133,20 +97,6 @@ async function newCard() {
         @click="handleImport"
       >
         Import
-      </button>
-      <button
-        v-if="store.isActive"
-        class="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
-        @click="handleExport('json')"
-      >
-        JSON
-      </button>
-      <button
-        v-if="store.isActive"
-        class="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
-        @click="handleExport('png')"
-      >
-        PNG
       </button>
     </div>
     <div class="flex-1 overflow-y-auto p-2" style="scrollbar-gutter: auto">
