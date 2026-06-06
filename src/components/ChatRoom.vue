@@ -58,20 +58,8 @@ watch(() => props.greeting, async () => {
   scrollToBottom()
 })
 
-async function sendMessage() {
-  const text = input.value.trim()
-  if (!text || sending.value) return
-
-  input.value = ''
-  const userMsg: ChatMessage = { role: 'user', content: text }
-  await store.addMessage(userMsg)
+async function streamAssistantResponse(apiMessages: ChatMessage[]) {
   sending.value = true
-
-  const session = store.sessions.find((s) => s.id === store.activeSessionId)
-  if (!session) { sending.value = false; return }
-
-  const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
-
   abortController.value = new AbortController()
   let assistantContent = ''
 
@@ -102,6 +90,21 @@ async function sendMessage() {
   }
 }
 
+async function sendMessage() {
+  const text = input.value.trim()
+  if (!text || sending.value) return
+
+  input.value = ''
+  const userMsg: ChatMessage = { role: 'user', content: text }
+  await store.addMessage(userMsg)
+
+  const session = store.sessions.find((s) => s.id === store.activeSessionId)
+  if (!session) return
+
+  const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
+  await streamAssistantResponse(apiMessages)
+}
+
 function isChatMsg(i: number): boolean {
   const info = assembledInfo.value
   return i >= info.sessionStart && i < info.sessionStart + info.sessionCount
@@ -121,6 +124,24 @@ async function deleteMessage(assembledIdx: number) {
   await db.chatSessions.put(session)
   const idx = store.sessions.findIndex((s) => s.id === sid)
   if (idx !== -1) store.sessions[idx] = session
+}
+
+async function regenerateMessage(assembledIdx: number) {
+  const sid = store.activeSessionId
+  if (sid == null || sending.value) return
+  const session = await db.chatSessions.get(sid) as ChatSession | undefined
+  if (!session) return
+  const sessionIdx = assembledIdx - assembledInfo.value.sessionStart
+  const firstSessionIdx = session.messages[0]?.role === 'system' ? 1 : 0
+  const msgIdx = firstSessionIdx + sessionIdx
+  if (msgIdx < 0 || msgIdx >= session.messages.length) return
+  session.messages.splice(msgIdx)
+  session.updatedAt = new Date().toISOString()
+  await db.chatSessions.put(session)
+  const idx = store.sessions.findIndex((s) => s.id === sid)
+  if (idx !== -1) store.sessions[idx] = session
+  const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
+  await streamAssistantResponse(apiMessages)
 }
 
 function cancelChat() {
@@ -189,11 +210,16 @@ function scrollToBottom() {
               <template v-else-if="msg.role === 'user'">You</template>
               <template v-else>Assistant</template>
             </span>
-            <button
-              v-if="isChatMsg(i)"
-              class="text-xs text-gray-500 hover:text-red-400"
-              @click="deleteMessage(i)"
-            >✕</button>
+            <span v-if="isChatMsg(i)" class="flex items-center gap-1">
+              <button
+                class="text-xs text-gray-500 hover:text-green-400"
+                @click="regenerateMessage(i)"
+              >↻</button>
+              <button
+                class="text-xs text-gray-500 hover:text-red-400"
+                @click="deleteMessage(i)"
+              >✕</button>
+            </span>
           </div>
           <MarkdownField :model-value="msg.content" readonly />
         </div>
