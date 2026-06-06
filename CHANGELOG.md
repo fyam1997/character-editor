@@ -3,8 +3,16 @@
 ## [0.1.2] — 2026-06-06
 
 ### Added
-- All text fields now show rendered markdown by default (click to edit raw)
-- MarkdownField component with dark-themed styling for headings, code, links, blockquotes
+- MarkdownField component: all text fields render markdown by default,
+  click to edit raw with auto-grow textarea and auto-focus
+- Dialogue highlighting: quoted text rendered in green, italic in grey
+- Non-V2 JSON imports auto-wrap root-level fields into V2 format
+- PNG import/export uses `meta-png` for proper `chara` tEXt chunk
+  embedding, falls back to append method for legacy PNGs
+
+### Fixed
+- Character book entries not read from non-V2 JSON imports
+- PNG import/export not working (was using raw append method)
 
 ## [0.1.1] — 2026-06-06
 
