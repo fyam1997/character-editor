@@ -7,6 +7,7 @@ import { useSortable } from '../utils/useSortable'
 
 const emit = defineEmits<{
   startChat: [greeting: string]
+  generate: [field: 'greeting', index: number, content: string]
 }>()
 
 const store = useEditorStore()
@@ -99,6 +100,11 @@ useSortable(greetingListRef, reorderGreetings, { handle: '.drag-handle' })
             <span class="text-xs text-gray-500">Greeting {{ index + 1 }}</span>
           </div>
           <div class="flex items-center gap-2">
+            <button
+              class="px-1.5 py-0.5 text-xs rounded text-yellow-300 hover:bg-yellow-900/40"
+              title="Generate"
+              @click.stop="emit('generate', 'greeting', index, greeting)"
+            >✨</button>
             <button
               class="px-2 py-0.5 text-xs rounded text-green-200"
               :class="greeting.trim() ? 'bg-green-800 hover:bg-green-700' : 'bg-green-900 opacity-50 cursor-default'"
