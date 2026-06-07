@@ -39,7 +39,7 @@ function syncKeys() {
 
 watch(() => book.value?.entries.length, syncKeys, { immediate: true })
 
-function addEntry() {
+function addEntry(index: number) {
   if (!book.value) return
   const entry: CharacterBookEntry = {
     keys: [],
@@ -48,8 +48,8 @@ function addEntry() {
     enabled: true,
     insertion_order: 100,
   }
-  book.value.entries.push(entry)
-  entryKeys.value.push(nextEntryKey++)
+  book.value.entries.splice(index, 0, entry)
+  entryKeys.value.splice(index, 0, nextEntryKey++)
 }
 
 function sortInsertionOrder() {
@@ -89,14 +89,6 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
 
 <template>
   <CollapsibleSection title="Character Lore Book">
-    <template #actions>
-      <button
-        class="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded"
-        @click="addEntry"
-      >
-        + Add Entry
-      </button>
-    </template>
     <div v-if="!book" class="text-xs text-gray-600 py-2">No card selected</div>
     <template v-else>
       <div class="grid grid-cols-2 gap-2 mb-3 p-3 bg-gray-900 rounded border border-gray-700">
@@ -130,21 +122,66 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
 
         </div>
       </div>
-      <div ref="entryListRef" class="space-y-2">
-        <EntryCard
-          v-for="(entry, index) in book.entries"
-          :key="entryKeys[index]"
-          :entry="entry"
-          :index="index"
-          :total="book.entries.length"
-          @remove="removeEntry(index)"
-          @move="moveEntry(index, $event)"
-          @generate="(field, idx, content) => emit('generate', field, idx, content)"
-        />
+      <div class="flex items-center gap-2 py-1">
+        <div class="flex-1 h-px bg-gray-700 ml-8"></div>
+        <button
+          class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
+          title="Add entry here"
+          @click="addEntry(0)"
+        >+</button>
+        <div class="flex-1 h-px bg-gray-700 mr-8"></div>
       </div>
       <div v-if="book.entries.length === 0" class="text-xs text-gray-600 py-2">
         No lorebook entries. Add one to define character-specific knowledge.
       </div>
+      <div ref="entryListRef" class="relative">
+        <TransitionGroup name="list">
+          <div
+            v-for="(entry, index) in book.entries"
+            :key="entryKeys[index]"
+          >
+            <EntryCard
+              :entry="entry"
+              :index="index"
+              :total="book.entries.length"
+              @remove="removeEntry(index)"
+              @move="moveEntry(index, $event)"
+              @generate="(field, idx, content) => emit('generate', field, idx, content)"
+            />
+            <div class="flex items-center gap-2 pt-2 pb-2">
+              <div class="flex-1 h-px bg-gray-700 ml-8"></div>
+              <button
+                class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
+                title="Add entry here"
+                @click="addEntry(index + 1)"
+              >+</button>
+              <div class="flex-1 h-px bg-gray-700 mr-8"></div>
+            </div>
+          </div>
+        </TransitionGroup>
+      </div>
     </template>
   </CollapsibleSection>
 </template>
+
+<style scoped>
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.25s ease;
+}
+.list-leave-active {
+  position: absolute;
+  width: 100%;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.list-move {
+  transition: transform 0.25s ease;
+}
+</style>

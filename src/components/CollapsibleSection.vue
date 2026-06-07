@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const props = defineProps<{
   title: string
@@ -49,34 +49,23 @@ function end() {
   }
   animating.value = false
 }
-
-const headerClass = computed(() => {
-  if (props.borderless) {
-    return open.value
-      ? 'border border-gray-700 rounded-t-lg border-b-0 border-t-0'
-      : 'border border-gray-700 rounded-lg border-t-0'
-  }
-  return open.value
-    ? 'border border-gray-700 rounded-t-lg border-b-0'
-    : 'border border-gray-700 rounded-lg'
-})
 </script>
 
 <template>
   <div>
     <div
-      :class="['sticky top-0 z-20 flex items-center gap-2 py-2 px-3 cursor-pointer select-none', headerClass]"
+      class="sticky top-0 z-20 flex items-center gap-2 py-2 px-3 cursor-pointer select-none border-b border-gray-700"
       @click="toggle"
     >
       <span class="text-xs text-gray-500 transition-transform duration-200" :class="open ? 'rotate-0' : '-rotate-90'">▼</span>
-      <h2 class="text-sm font-bold text-gray-300">{{ title }}</h2>
+      <h2 class="text-lg font-bold text-gray-300">{{ title }}</h2>
       <div class="ml-auto" @click.stop>
         <slot name="actions" />
       </div>
     </div>
     <div
       ref="body"
-      class="border border-gray-700 rounded-b-lg border-t-0 overflow-hidden"
+      class="overflow-hidden"
       :class="{ 'border-transparent': !open }"
       style="transition: height 0.3s ease"
       @transitionend="end"
