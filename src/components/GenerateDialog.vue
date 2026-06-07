@@ -70,7 +70,6 @@ function randomPick(n: number, max: number): number[] {
 let initializing = false
 
 function initSelections() {
-  initializing = true
   const nonEmptyG = greetings.value.map((g, i) => g.trim() ? i : -1).filter(i => i !== -1)
   const pickFrom = nonEmptyG.length > 0 ? nonEmptyG : [0]
   const gLen = greetings.value.length
@@ -81,7 +80,6 @@ function initSelections() {
 
   const lLen = loreEntries.value.length
   loreSelections.value = Array.from({ length: lLen }, () => false)
-  initializing = false
   updateLoreFromGreetings()
 }
 
@@ -142,9 +140,16 @@ function initPrompt() {
 
 watch(() => props.visible, (v) => {
   if (v) {
+    initializing = true
     initSelections()
     initPrompt()
+    initializing = false
   }
+})
+
+watch(userPrompt, (val) => {
+  if (initializing) return
+  savePromptMemory(props.field, mode.value, val)
 })
 
 function onKeydown(e: KeyboardEvent) {
