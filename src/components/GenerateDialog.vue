@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import { streamChat } from '../utils/api'
 import { assembleGeneratePrompt, getDefaultPrompt, loadPromptMemory, savePromptMemory, clearPromptMemory } from '../utils/generate'
@@ -118,6 +118,15 @@ watch(() => props.visible, (v) => {
     initPrompt()
   }
 })
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.visible && !generating.value) {
+    handleClose()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 function handleReset() {
   let keys: string | undefined
