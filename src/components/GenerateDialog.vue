@@ -83,13 +83,13 @@ function initSelections() {
   }
 
   const gLen = greetings.value.length
-  greetingSelections.value = Array.from({ length: gLen }, (_, i) => false)
+  greetingSelections.value = Array.from({ length: gLen }, () => false)
   for (const idx of randomPick(3, gLen)) {
     greetingSelections.value[idx] = true
   }
 
   const lLen = loreEntries.value.length
-  loreSelections.value = Array.from({ length: lLen }, (_, i) => false)
+  loreSelections.value = Array.from({ length: lLen }, () => false)
   for (const idx of randomPick(3, lLen)) {
     loreSelections.value[idx] = true
   }
