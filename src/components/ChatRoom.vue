@@ -186,12 +186,13 @@ function scrollToBottom() {
         <div
           v-for="(msg, i) in assembledInfo.messages"
           :key="i"
-          class="text-xs border rounded px-3 py-2 mt-2 text-gray-200"
+          class="text-xs border border-gray-700 bg-gray-900 rounded px-3 py-2 mt-2 border-l-2"
           :class="{
-            'border-gray-700 bg-gray-900 border-l-2': !msg.name,
-            'border-gray-700 bg-gray-900 border-l-2 border-l-blue-500': msg.role === 'user',
-            'border-gray-700 bg-gray-900 border-l-2 border-l-green-500': msg.role === 'assistant',
-            'border-gray-700 bg-gray-900 border-l-2 border-l-yellow-500': msg.name,
+            'border-l-blue-500': msg.role === 'user',
+            'border-l-green-500': msg.role === 'assistant',
+            'border-l-yellow-500': !!msg.name,
+            'text-gray-400': msg.role === 'system' && !msg.name,
+            'text-gray-200': msg.role !== 'system' || !!msg.name,
           }"
         >
           <div class="flex items-center justify-between mb-0.5">
