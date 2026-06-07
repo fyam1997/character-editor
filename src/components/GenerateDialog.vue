@@ -335,7 +335,6 @@ function handleClose() {
             <MarkdownField
               :model-value="resultText"
               :disabled="generating"
-              :readonly="generating"
             />
           </div>
 
