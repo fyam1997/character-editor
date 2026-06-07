@@ -134,30 +134,54 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
       <div v-if="book.entries.length === 0" class="text-xs text-gray-600 py-2">
         No lorebook entries. Add one to define character-specific knowledge.
       </div>
-      <div ref="entryListRef">
-        <div
-          v-for="(entry, index) in book.entries"
-          :key="entryKeys[index]"
-        >
-          <EntryCard
-            :entry="entry"
-            :index="index"
-            :total="book.entries.length"
-            @remove="removeEntry(index)"
-            @move="moveEntry(index, $event)"
-            @generate="(field, idx, content) => emit('generate', field, idx, content)"
-          />
-          <div class="flex items-center gap-2 pt-2 pb-2">
-            <div class="flex-1 h-px bg-gray-700"></div>
-            <button
-              class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
-              title="Add entry here"
-              @click="addEntry(index + 1)"
-            >+</button>
-            <div class="flex-1 h-px bg-gray-700"></div>
+      <div ref="entryListRef" class="relative">
+        <TransitionGroup name="list">
+          <div
+            v-for="(entry, index) in book.entries"
+            :key="entryKeys[index]"
+          >
+            <EntryCard
+              :entry="entry"
+              :index="index"
+              :total="book.entries.length"
+              @remove="removeEntry(index)"
+              @move="moveEntry(index, $event)"
+              @generate="(field, idx, content) => emit('generate', field, idx, content)"
+            />
+            <div class="flex items-center gap-2 pt-2 pb-2">
+              <div class="flex-1 h-px bg-gray-700"></div>
+              <button
+                class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
+                title="Add entry here"
+                @click="addEntry(index + 1)"
+              >+</button>
+              <div class="flex-1 h-px bg-gray-700"></div>
+            </div>
           </div>
-        </div>
+        </TransitionGroup>
       </div>
     </template>
   </CollapsibleSection>
 </template>
+
+<style scoped>
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.25s ease;
+}
+.list-leave-active {
+  position: absolute;
+  width: 100%;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.list-move {
+  transition: transform 0.25s ease;
+}
+</style>

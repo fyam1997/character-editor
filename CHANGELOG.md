@@ -6,6 +6,8 @@
 - Greetings and lorebook panels: replaced top-right "+ Add" buttons with inline
   `--- + ---` dividers between each list item for positional insertion, plus a
   top and bottom divider outside the list
+- Greetings and lorebook panels: add/remove animations via TransitionGroup
+  (slide+fade on enter/leave, smooth repositioning on move)
 
 ### Fixed
 - Generate dialog prompt and theme fields now properly bind via `v-model` instead
