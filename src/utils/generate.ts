@@ -94,7 +94,8 @@ export function assembleGeneratePrompt(
     role: 'system',
     content: 'You are a writing assistant for authoring character cards for roleplay. '
       + 'You help write and improve character descriptions, personalities, scenarios, '
-      + `example chats, greetings, and lorebook entries. ${styleLine}Write in the same style and format as the provided context.`,
+      + `example chats, greetings, and lorebook entries. ${styleLine}`
+      + 'Respond with ONLY the raw content — no explanations, no meta-commentary, no markdown wrappers, no labels.',
   })
 
   const blocks: string[] = []
