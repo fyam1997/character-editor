@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.2.0] — 2026-06-07
+
+### Added
+- AI Generate Dialog: ✨ button on individual fields opens a context-selection
+  dialog that calls the LLM to compose (empty field) or polish (filled field) content
+- Generate target on: greeting items, character fields (Description, Personality,
+  Scenario, Example Chat), and lore entry content
+- Dialog shows character context (auto-included), selectable greetings and lore
+  entries, editable prompt with per-field-per-mode memory, and optional theme input
+- Result streams into an editable textarea with Confirm/Discard controls
+- Esc key closes the dialog (unless generating)
+- Theme text field stored per field+mode in localStorage
+
+### Changed
+- Character field context is always included if non-empty (no checkboxes)
+- Lore entries in the dialog auto-select based on key-matching against selected
+  greeting texts (instead of random pick)
+- ParseMesExample now handles multi-line continuations and optional space after
+  `{{user}}:` / `{{char}}:` prefixes
+- Chat message header color matches left border (blue/green/yellow/gray); only
+  System messages are dimmed
+- Empty greetings and lore entries are hidden from the dialog
+- AI system prompt tightened to respond with only raw content, no decoration
+
+### Fixed
+- Prompt auto-saves to localStorage on every edit (was only saving on Generate)
+- Empty greeting/lore entries no longer preselected in dialog
+
 ## [0.1.6] — 2026-06-07
 
 ### Added
