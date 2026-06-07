@@ -186,16 +186,24 @@ function scrollToBottom() {
         <div
           v-for="(msg, i) in assembledInfo.messages"
           :key="i"
-          class="text-xs border rounded px-3 py-2 mt-2"
+          class="text-xs border rounded px-3 py-2 mt-2 text-gray-200"
           :class="{
-            'border-gray-700 bg-gray-900 text-gray-400 border-l-2': msg.role === 'system' && !msg.name,
-            'border-gray-700 bg-gray-900 text-gray-200 border-l-2 border-l-blue-500': msg.role === 'user',
-            'border-gray-700 bg-gray-900 text-gray-200 border-l-2 border-l-green-500': msg.role === 'assistant',
-            'border-gray-700 bg-gray-900 text-yellow-200 border-l-2 border-l-yellow-500': msg.name,
+            'border-gray-700 bg-gray-900 border-l-2': !msg.name,
+            'border-gray-700 bg-gray-900 border-l-2 border-l-blue-500': msg.role === 'user',
+            'border-gray-700 bg-gray-900 border-l-2 border-l-green-500': msg.role === 'assistant',
+            'border-gray-700 bg-gray-900 border-l-2 border-l-yellow-500': msg.name,
           }"
         >
           <div class="flex items-center justify-between mb-0.5">
-            <span class="font-bold">
+            <span
+              class="font-bold"
+              :class="{
+                'text-blue-500': msg.role === 'user',
+                'text-green-500': msg.role === 'assistant',
+                'text-yellow-500': !!msg.name,
+                'text-gray-400': msg.role === 'system' && !msg.name,
+              }"
+            >
               <template v-if="msg.name">{{ msg.name }}</template>
               <template v-else-if="msg.role === 'system'">System</template>
               <template v-else-if="msg.role === 'user'">You</template>
