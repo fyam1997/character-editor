@@ -54,10 +54,10 @@ function updateGreeting(index: number, value: string) {
   }
 }
 
-function addGreeting() {
+function addGreeting(index: number) {
   if (!store.cardJson) return
-  store.cardJson.data.alternate_greetings.push('')
-  greetingKeys.value.push(nextKey++)
+  store.cardJson.data.alternate_greetings.splice(index, 0, '')
+  greetingKeys.value.splice(index, 0, nextKey++)
 }
 
 function removeGreeting(index: number) {
@@ -74,53 +74,61 @@ useSortable(greetingListRef, reorderGreetings, { handle: '.drag-handle' })
 
 <template>
   <CollapsibleSection title="Greetings">
-    <template #actions>
+    <div class="flex items-center gap-2 py-1">
+      <div class="flex-1 h-px bg-gray-700"></div>
       <button
-        class="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded"
-        @click="addGreeting"
-      >
-        + Add Greeting
-      </button>
-    </template>
+        class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
+        title="Add greeting here"
+        @click="addGreeting(0)"
+      >+</button>
+      <div class="flex-1 h-px bg-gray-700"></div>
+    </div>
     <div v-if="!store.cardJson || store.cardJson.data.alternate_greetings.length === 0" class="text-xs text-gray-600 py-2">
       No greetings yet.
     </div>
-    <div
-      ref="greetingListRef"
-      class="space-y-2"
-    >
+    <div ref="greetingListRef">
       <div
         v-for="(greeting, index) in store.cardJson?.data.alternate_greetings ?? []"
         :key="greetingKeys[index]"
-        class="border border-gray-700 rounded p-2"
       >
-        <div class="flex items-center justify-between mb-1">
-          <div class="flex items-center gap-1">
-            <span class="drag-handle cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 select-none">⠿</span>
-            <span class="text-xs text-gray-500">Greeting {{ index + 1 }}</span>
+        <div class="border border-gray-700 rounded p-2">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-1">
+              <span class="drag-handle cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 select-none">⠿</span>
+              <span class="text-xs text-gray-500">Greeting {{ index + 1 }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                class="px-1.5 py-0.5 text-xs rounded text-yellow-300 hover:bg-yellow-900/40"
+                title="Generate"
+                @click.stop="emit('generate', 'greeting', index, greeting)"
+              >✨</button>
+              <button
+                class="px-2 py-0.5 text-xs rounded text-green-200"
+:class="(greeting ?? '').trim() ? 'bg-green-800 hover:bg-green-700' : 'bg-green-900 opacity-50 cursor-default'"
+              :disabled="!(greeting ?? '').trim()"
+                @click="emit('startChat', greeting)"
+              >
+                ▶ Start Chat
+              </button>
+              <button
+                class="text-xs text-gray-500 hover:text-red-400 disabled:opacity-0"
+                :disabled="(store.cardJson?.data.alternate_greetings.length ?? 0) <= 1"
+                @click="removeGreeting(index)"
+              >✕</button>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <button
-              class="px-1.5 py-0.5 text-xs rounded text-yellow-300 hover:bg-yellow-900/40"
-              title="Generate"
-              @click.stop="emit('generate', 'greeting', index, greeting)"
-            >✨</button>
-            <button
-              class="px-2 py-0.5 text-xs rounded text-green-200"
-              :class="greeting.trim() ? 'bg-green-800 hover:bg-green-700' : 'bg-green-900 opacity-50 cursor-default'"
-              :disabled="!greeting.trim()"
-              @click="emit('startChat', greeting)"
-            >
-              ▶ Start Chat
-            </button>
-            <button
-              class="text-xs text-gray-500 hover:text-red-400 disabled:opacity-0"
-              :disabled="(store.cardJson?.data.alternate_greetings.length ?? 0) <= 1"
-              @click="removeGreeting(index)"
-            >✕</button>
-          </div>
+          <MarkdownField :model-value="greeting" @update:model-value="(v: string) => updateGreeting(index, v)" />
         </div>
-        <MarkdownField :model-value="greeting" @update:model-value="(v: string) => updateGreeting(index, v)" />
+        <div class="flex items-center gap-2 pt-2 pb-2">
+          <div class="flex-1 h-px bg-gray-700"></div>
+          <button
+            class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
+            title="Add greeting here"
+            @click="addGreeting(index + 1)"
+          >+</button>
+          <div class="flex-1 h-px bg-gray-700"></div>
+        </div>
       </div>
     </div>
   </CollapsibleSection>

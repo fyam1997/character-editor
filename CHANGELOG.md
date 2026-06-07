@@ -2,6 +2,11 @@
 
 ## [0.2.1] — 2026-06-07
 
+### Changed
+- Greetings and lorebook panels: replaced top-right "+ Add" buttons with inline
+  `--- + ---` dividers between each list item for positional insertion, plus a
+  top and bottom divider outside the list
+
 ### Fixed
 - Generate dialog prompt and theme fields now properly bind via `v-model` instead
   of `:model-value` without `@update:model-value`, so edits commit back to the
