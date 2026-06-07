@@ -12,6 +12,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   remove: []
   move: [dir: -1 | 1]
+  generate: [field: 'lore', index: number, content: string]
 }>()
 
 const showAdvanced = ref(false)
@@ -70,7 +71,10 @@ function update<K extends keyof CharacterBookEntry>(key: K, value: CharacterBook
           />
         </div>
       <div>
-        <label class="text-xs text-gray-400 block mb-0.5">Content</label>
+        <div class="flex items-center justify-between mb-0.5">
+          <label class="text-xs text-gray-400">Content</label>
+          <button class="px-1.5 py-0.5 text-xs rounded text-yellow-300 hover:bg-yellow-900/40" title="Generate" @click="emit('generate', 'lore', props.index, entry.content)">✨</button>
+        </div>
         <MarkdownField :model-value="entry.content" @update:model-value="(v: string) => update('content', v)" />
       </div>
 
