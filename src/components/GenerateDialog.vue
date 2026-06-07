@@ -310,7 +310,7 @@ function handleClose() {
               <button class="text-xs text-gray-500 hover:text-gray-300" @click="handleReset">↺ Reset</button>
             </div>
             <MarkdownField
-              :model-value="userPrompt"
+              v-model="userPrompt"
               :disabled="generating"
             />
           </div>
@@ -318,7 +318,7 @@ function handleClose() {
           <div>
             <label class="text-xs text-gray-400 block mb-1">Theme</label>
             <MarkdownField
-              :model-value="theme"
+              v-model="theme"
               :disabled="generating"
             />
           </div>

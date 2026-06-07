@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1] — 2026-06-07
+
+### Fixed
+- Generate dialog prompt and theme fields now properly bind via `v-model` instead
+  of `:model-value` without `@update:model-value`, so edits commit back to the
+  underlying refs and are saved to localStorage
+
 ## [0.2.0] — 2026-06-07
 
 ### Added
