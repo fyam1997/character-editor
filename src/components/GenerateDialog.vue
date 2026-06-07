@@ -4,6 +4,7 @@ import { useEditorStore } from '../stores/editor'
 import { streamChat } from '../utils/api'
 import { assembleGeneratePrompt, getDefaultPrompt, loadPromptMemory, savePromptMemory, clearPromptMemory } from '../utils/generate'
 import type { GenerateField, GenerateMode } from '../utils/generate'
+import MarkdownField from './MarkdownField.vue'
 
 const props = defineProps<{
   visible: boolean
@@ -44,7 +45,6 @@ const loreSelections = ref<boolean[]>([])
 const userPrompt = ref('')
 const originalPrompt = ref('')
 const theme = ref('')
-const originalTheme = ref('')
 const resultText = ref('')
 const generating = ref(false)
 const error = ref('')
@@ -55,6 +55,10 @@ const loreEntries = computed(() => store.cardJson?.data.character_book?.entries 
 
 const isPromptEdited = computed(() => userPrompt.value !== originalPrompt.value)
 const showResultReview = computed(() => resultText.value.trim() !== '' && !generating.value && done.value)
+const hasCharContext = computed(() => {
+  const d = store.cardJson?.data
+  return !!(d?.description || d?.personality || d?.scenario || d?.mes_example)
+})
 
 function randomPick(n: number, max: number): number[] {
   const indices = Array.from({ length: max }, (_, i) => i)
@@ -101,7 +105,6 @@ function initPrompt() {
     const savedTheme = localStorage.getItem(memoryKey('generateTheme'))
     theme.value = savedTheme ?? ''
   } catch { theme.value = '' }
-  originalTheme.value = theme.value
 
   resultText.value = ''
   error.value = ''
@@ -151,7 +154,6 @@ async function handleGenerate() {
     store.cardJson,
     mode.value,
     props.content,
-    { description: true, personality: true, scenario: true, mes_example: true },
     selectedGreetings,
     selectedLore,
     userPrompt.value,
@@ -216,9 +218,29 @@ function handleClose() {
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <div v-if="hasCharContext" class="space-y-1 bg-gray-800 rounded">
+            <label class="text-xs text-gray-400 block mb-2">Character Context</label>
+            <div v-if="store.cardJson?.data.description" class="text-xs text-gray-300 flex gap-2">
+              <span class="font-medium shrink-0">Description</span>
+              <span class="truncate text-gray-500">— {{ store.cardJson.data.description.slice(0, 80) }}</span>
+            </div>
+            <div v-if="store.cardJson?.data.personality" class="text-xs text-gray-300 flex gap-2">
+              <span class="font-medium shrink-0">Personality</span>
+              <span class="truncate text-gray-500">— {{ store.cardJson.data.personality.slice(0, 80) }}</span>
+            </div>
+            <div v-if="store.cardJson?.data.scenario" class="text-xs text-gray-300 flex gap-2">
+              <span class="font-medium shrink-0">Scenario</span>
+              <span class="truncate text-gray-500">— {{ store.cardJson.data.scenario.slice(0, 80) }}</span>
+            </div>
+            <div v-if="store.cardJson?.data.mes_example" class="text-xs text-gray-300 flex gap-2">
+              <span class="font-medium shrink-0">Example Chat</span>
+              <span class="truncate text-gray-500">— {{ store.cardJson.data.mes_example.slice(0, 80) }}</span>
+            </div>
+          </div>
+
           <div v-if="greetings.length > 0">
-            <label class="text-xs text-gray-400 block mb-2">Greetings (select for context)</label>
-            <div class="space-y-1 max-h-32 overflow-y-auto">
+            <label class="text-xs text-gray-400 block mb-2">Greetings</label>
+            <div class="space-y-1 overflow-hidden">
               <label v-for="(g, i) in greetings" :key="i" class="flex items-center gap-2 text-xs text-gray-300">
                 <input type="checkbox" v-model="greetingSelections[i]" />
                 <span class="truncate">{{ g.slice(0, 80) }}</span>
@@ -227,24 +249,14 @@ function handleClose() {
           </div>
 
           <div v-if="loreEntries.length > 0">
-            <label class="text-xs text-gray-400 block mb-2">Lore Entries (select for context)</label>
-            <div class="space-y-1 max-h-32 overflow-y-auto">
+            <label class="text-xs text-gray-400 block mb-2">Lore Entries</label>
+            <div class="space-y-1 overflow-y-auto">
               <label v-for="(e, i) in loreEntries" :key="i" class="flex items-center gap-2 text-xs text-gray-300">
                 <input type="checkbox" v-model="loreSelections[i]" />
-                <span>{{ e.name || e.keys?.join(', ') || `Entry ${i + 1}` }}</span>
+                <span>{{ e.name || e.comment || e.keys?.join(', ') || `Entry ${i + 1}` }}</span>
                 <span v-if="e.content" class="truncate text-gray-500">— {{ e.content.slice(0, 50) }}</span>
               </label>
             </div>
-          </div>
-
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Theme (optional)</label>
-            <input
-              v-model="theme"
-              class="w-full px-3 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
-              placeholder="e.g. noir, gothic, humorous, epic fantasy..."
-              :disabled="generating"
-            />
           </div>
 
           <div>
@@ -252,46 +264,50 @@ function handleClose() {
               <label class="text-xs text-gray-400">Prompt</label>
               <button v-if="isPromptEdited" class="text-xs text-gray-500 hover:text-gray-300" @click="handleReset">↺ Reset</button>
             </div>
-            <textarea
-              v-model="userPrompt"
-              class="w-full px-3 py-2 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-none"
-              rows="4"
+            <MarkdownField
+              :model-value="userPrompt"
               :disabled="generating"
             />
           </div>
 
-          <div v-if="resultText" class="relative">
-            <label class="text-xs text-gray-400 block mb-2">Result</label>
-            <textarea
-              v-model="resultText"
-              class="w-full px-3 py-2 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-none min-h-[100px]"
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Theme</label>
+            <MarkdownField
+              :model-value="theme"
               :disabled="generating"
-              :readonly="generating"
-              rows="6"
             />
           </div>
 
-          <div v-if="error" class="text-xs text-red-400 bg-red-900/30 px-3 py-2 rounded">{{ error }}</div>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-700 shrink-0">
           <button
-            class="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
-            @click="showResultReview ? handleDiscard() : handleClose()"
-            :disabled="generating"
-          >{{ showResultReview ? 'Discard' : 'Cancel' }}</button>
-          <button
-            v-if="showResultReview"
-            class="px-3 py-1.5 text-xs rounded bg-green-700 hover:bg-green-600 text-green-100"
-            @click="handleConfirm"
-          >Confirm</button>
-          <button
-            v-else
-            class="px-3 py-1.5 text-xs rounded disabled:opacity-50"
+            class="w-full px-3 py-1.5 text-xs rounded disabled:opacity-50"
             :class="generating ? 'bg-blue-900 text-blue-300 cursor-wait' : 'bg-blue-700 hover:bg-blue-600 text-blue-100'"
             :disabled="generating"
             @click="handleGenerate"
           >{{ generating ? 'Generating...' : 'Generate' }}</button>
+
+          <div v-if="resultText" class="relative">
+            <label class="text-xs text-gray-400 block mb-2">Result</label>
+            <MarkdownField
+              :model-value="resultText"
+              :disabled="generating"
+              :readonly="generating"
+            />
+          </div>
+
+          <div v-if="error" class="text-xs text-red-400 bg-red-900/30 px-3 py-2 rounded">{{ error }}</div>
+
+          <div v-if="resultText" class="w-full flex items-center gap-2">
+            <button
+              class="flex-1 px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+              @click="handleDiscard"
+              :disabled="generating"
+            >Discard</button>
+            <button
+              v-if="showResultReview"
+              class="flex-1 px-3 py-1.5 text-xs rounded bg-green-700 hover:bg-green-600 text-green-100"
+              @click="handleConfirm"
+            >Confirm</button>
+          </div>
         </div>
       </div>
     </div>

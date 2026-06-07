@@ -62,7 +62,6 @@ export function assembleGeneratePrompt(
   cardJson: CharacterCardV2,
   mode: GenerateMode,
   currentContent: string,
-  contextFields: { description: boolean; personality: boolean; scenario: boolean; mes_example: boolean },
   selectedGreetings: number[],
   selectedLoreEntries: number[],
   userPrompt: string,
@@ -82,13 +81,13 @@ export function assembleGeneratePrompt(
 
   const blocks: string[] = []
 
-  if (contextFields.description && data.description)
+  if (data.description)
     blocks.push(`=== Description ===\n${data.description}`)
-  if (contextFields.personality && data.personality)
+  if (data.personality)
     blocks.push(`=== Personality ===\n${data.personality}`)
-  if (contextFields.scenario && data.scenario)
+  if (data.scenario)
     blocks.push(`=== Scenario ===\n${data.scenario}`)
-  if (contextFields.mes_example && data.mes_example)
+  if (data.mes_example)
     blocks.push(`=== Example Chat ===\n${data.mes_example}`)
 
   for (const idx of selectedGreetings) {
