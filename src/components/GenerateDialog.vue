@@ -39,13 +39,6 @@ const fieldLabel = computed(() => {
   return FIELD_LABELS[props.field]
 })
 
-const contextFields = ref({
-  description: true,
-  personality: true,
-  scenario: true,
-  mes_example: true,
-})
-
 const greetingSelections = ref<boolean[]>([])
 const loreSelections = ref<boolean[]>([])
 const userPrompt = ref('')
@@ -62,11 +55,6 @@ const loreEntries = computed(() => store.cardJson?.data.character_book?.entries 
 
 const isPromptEdited = computed(() => userPrompt.value !== originalPrompt.value)
 
-const hasContextFields = computed(() => {
-  const d = store.cardJson?.data
-  return !!(d?.description || d?.personality || d?.scenario || d?.mes_example)
-})
-
 function randomPick(n: number, max: number): number[] {
   const indices = Array.from({ length: max }, (_, i) => i)
   for (let i = indices.length - 1; i > 0; i--) {
@@ -77,13 +65,6 @@ function randomPick(n: number, max: number): number[] {
 }
 
 function initSelections() {
-  contextFields.value = {
-    description: !!store.cardJson?.data.description,
-    personality: !!store.cardJson?.data.personality,
-    scenario: !!store.cardJson?.data.scenario,
-    mes_example: !!store.cardJson?.data.mes_example,
-  }
-
   const gLen = greetings.value.length
   greetingSelections.value = Array.from({ length: gLen }, () => false)
   for (const idx of randomPick(3, gLen)) {
@@ -169,7 +150,7 @@ async function handleGenerate() {
     store.cardJson,
     mode.value,
     props.content,
-    contextFields.value,
+    { description: true, personality: true, scenario: true, mes_example: true },
     selectedGreetings,
     selectedLore,
     userPrompt.value,
@@ -226,36 +207,6 @@ function handleClose() {
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
-          <div v-if="hasContextFields">
-            <label class="text-xs text-gray-400 block mb-2">Reference Context (auto-included when non-empty)</label>
-            <div class="space-y-1">
-              <label class="flex items-center gap-2 text-xs" :class="!store.cardJson?.data.description ? 'text-gray-600' : 'text-gray-300'">
-                <input type="checkbox" v-model="contextFields.description" :disabled="!store.cardJson?.data.description" />
-                <span class="font-medium">Description</span>
-                <span v-if="store.cardJson?.data.description" class="truncate text-gray-500">— {{ store.cardJson.data.description.slice(0, 60) }}</span>
-                <span v-else class="text-gray-500">(empty)</span>
-              </label>
-              <label class="flex items-center gap-2 text-xs" :class="!store.cardJson?.data.personality ? 'text-gray-600' : 'text-gray-300'">
-                <input type="checkbox" v-model="contextFields.personality" :disabled="!store.cardJson?.data.personality" />
-                <span class="font-medium">Personality</span>
-                <span v-if="store.cardJson?.data.personality" class="truncate text-gray-500">— {{ store.cardJson.data.personality.slice(0, 60) }}</span>
-                <span v-else class="text-gray-500">(empty)</span>
-              </label>
-              <label class="flex items-center gap-2 text-xs" :class="!store.cardJson?.data.scenario ? 'text-gray-600' : 'text-gray-300'">
-                <input type="checkbox" v-model="contextFields.scenario" :disabled="!store.cardJson?.data.scenario" />
-                <span class="font-medium">Scenario</span>
-                <span v-if="store.cardJson?.data.scenario" class="truncate text-gray-500">— {{ store.cardJson.data.scenario.slice(0, 60) }}</span>
-                <span v-else class="text-gray-500">(empty)</span>
-              </label>
-              <label class="flex items-center gap-2 text-xs" :class="!store.cardJson?.data.mes_example ? 'text-gray-600' : 'text-gray-300'">
-                <input type="checkbox" v-model="contextFields.mes_example" :disabled="!store.cardJson?.data.mes_example" />
-                <span class="font-medium">Example Chat</span>
-                <span v-if="store.cardJson?.data.mes_example" class="truncate text-gray-500">— {{ store.cardJson.data.mes_example.slice(0, 60) }}</span>
-                <span v-else class="text-gray-500">(empty)</span>
-              </label>
-            </div>
-          </div>
-
           <div v-if="greetings.length > 0">
             <label class="text-xs text-gray-400 block mb-2">Greetings (select for context)</label>
             <div class="space-y-1 max-h-32 overflow-y-auto">
