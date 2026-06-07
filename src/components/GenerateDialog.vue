@@ -71,10 +71,12 @@ let initializing = false
 
 function initSelections() {
   initializing = true
+  const nonEmptyG = greetings.value.map((g, i) => g.trim() ? i : -1).filter(i => i !== -1)
+  const pickFrom = nonEmptyG.length > 0 ? nonEmptyG : [0]
   const gLen = greetings.value.length
   greetingSelections.value = Array.from({ length: gLen }, () => false)
-  for (const idx of randomPick(3, gLen)) {
-    greetingSelections.value[idx] = true
+  for (const idx of randomPick(3, pickFrom.length)) {
+    greetingSelections.value[pickFrom[idx]] = true
   }
 
   const lLen = loreEntries.value.length
@@ -253,7 +255,7 @@ function handleClose() {
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
-          <div v-if="hasCharContext" class="space-y-1 bg-gray-800 rounded">
+          <div v-if="hasCharContext" class="space-y-1">
             <label class="text-xs text-gray-400 block mb-2">Character Context</label>
             <div v-if="store.cardJson?.data.description" class="text-xs text-gray-300 flex gap-2">
               <span class="font-medium shrink-0">Description</span>
@@ -276,21 +278,25 @@ function handleClose() {
           <div v-if="greetings.length > 0">
             <label class="text-xs text-gray-400 block mb-2">Greetings</label>
             <div class="space-y-1 overflow-hidden">
-              <label v-for="(g, i) in greetings" :key="i" class="flex items-center gap-2 text-xs text-gray-300">
-                <input type="checkbox" v-model="greetingSelections[i]" />
-                <span class="truncate">{{ g.slice(0, 80) }}</span>
-              </label>
+              <template v-for="(g, i) in greetings" :key="i">
+                <label v-if="g.trim()" class="flex items-center gap-2 text-xs text-gray-300">
+                  <input type="checkbox" v-model="greetingSelections[i]" />
+                  <span class="truncate">{{ g.slice(0, 80) }}</span>
+                </label>
+              </template>
             </div>
           </div>
 
           <div v-if="loreEntries.length > 0">
             <label class="text-xs text-gray-400 block mb-2">Lore Entries</label>
             <div class="space-y-1 overflow-y-auto">
-              <label v-for="(e, i) in loreEntries" :key="i" class="flex items-center gap-2 text-xs text-gray-300">
-                <input type="checkbox" v-model="loreSelections[i]" />
-                <span>{{ e.name || e.comment || e.keys?.join(', ') || `Entry ${i + 1}` }}</span>
-                <span v-if="e.content" class="truncate text-gray-500">— {{ e.content.slice(0, 50) }}</span>
-              </label>
+              <template v-for="(e, i) in loreEntries" :key="i">
+                <label v-if="e.content?.trim()" class="flex items-center gap-2 text-xs text-gray-300">
+                  <input type="checkbox" v-model="loreSelections[i]" />
+                  <span>{{ e.name || e.comment || e.keys?.join(', ') || `Entry ${i + 1}` }}</span>
+                  <span v-if="e.content" class="truncate text-gray-500">— {{ e.content.slice(0, 50) }}</span>
+                </label>
+              </template>
             </div>
           </div>
 
