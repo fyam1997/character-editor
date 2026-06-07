@@ -1,4 +1,4 @@
-import type { CharacterCardV2, ChatMessage } from '../types'
+import type { CharacterCardV2, ChatMessage, CharacterBookEntry } from '../types'
 
 export type GenerateField = 'description' | 'personality' | 'scenario' | 'mes_example' | 'greeting' | 'lore'
 export type GenerateMode = 'generate' | 'polish'
@@ -56,6 +56,24 @@ export function savePromptMemory(field: GenerateField, mode: GenerateMode, promp
 
 export function clearPromptMemory(field: GenerateField, mode: GenerateMode): void {
   try { localStorage.removeItem(memoryKey(field, mode)) } catch {}
+}
+
+export function getMatchingLoreIndices(
+  entries: CharacterBookEntry[],
+  texts: string[],
+): number[] {
+  const allText = texts.join('\n').toLowerCase()
+  const indices: number[] = []
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i]
+    if (!e.enabled) continue
+    if (e.constant) { indices.push(i); continue }
+    if (!e.keys?.length) continue
+    if (e.keys.some(key => key && allText.includes(key.toLowerCase()))) {
+      indices.push(i)
+    }
+  }
+  return indices
 }
 
 export function assembleGeneratePrompt(

@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import { streamChat } from '../utils/api'
-import { assembleGeneratePrompt, getDefaultPrompt, loadPromptMemory, savePromptMemory, clearPromptMemory } from '../utils/generate'
+import { assembleGeneratePrompt, getMatchingLoreIndices, getDefaultPrompt, loadPromptMemory, savePromptMemory, clearPromptMemory } from '../utils/generate'
 import type { GenerateField, GenerateMode } from '../utils/generate'
 import MarkdownField from './MarkdownField.vue'
 
@@ -67,7 +67,10 @@ function randomPick(n: number, max: number): number[] {
   return indices.slice(0, Math.min(n, max))
 }
 
+let initializing = false
+
 function initSelections() {
+  initializing = true
   const gLen = greetings.value.length
   greetingSelections.value = Array.from({ length: gLen }, () => false)
   for (const idx of randomPick(3, gLen)) {
@@ -76,10 +79,36 @@ function initSelections() {
 
   const lLen = loreEntries.value.length
   loreSelections.value = Array.from({ length: lLen }, () => false)
-  for (const idx of randomPick(3, lLen)) {
-    loreSelections.value[idx] = true
+  initializing = false
+  updateLoreFromGreetings()
+}
+
+function getSelectedGreetingTexts(): string[] {
+  const texts: string[] = []
+  for (let i = 0; i < greetingSelections.value.length; i++) {
+    if (greetingSelections.value[i] && greetings.value[i]) {
+      texts.push(greetings.value[i])
+    }
+  }
+  return texts
+}
+
+function updateLoreFromGreetings() {
+  const entries = store.cardJson?.data.character_book?.entries
+  if (!entries) return
+  const texts = getSelectedGreetingTexts()
+  const matching = getMatchingLoreIndices(entries, texts)
+  for (let i = 0; i < loreSelections.value.length; i++) {
+    if (matching.includes(i)) {
+      loreSelections.value[i] = true
+    }
   }
 }
+
+watch(greetingSelections, () => {
+  if (initializing) return
+  updateLoreFromGreetings()
+}, { deep: true })
 
 function memoryKey(prefix: string): string {
   return `${prefix}:${props.field}:${mode.value}`
