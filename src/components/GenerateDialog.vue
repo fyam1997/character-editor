@@ -54,6 +54,7 @@ const greetings = computed(() => store.cardJson?.data.alternate_greetings ?? [])
 const loreEntries = computed(() => store.cardJson?.data.character_book?.entries ?? [])
 
 const isPromptEdited = computed(() => userPrompt.value !== originalPrompt.value)
+const showResultReview = computed(() => resultText.value.trim() !== '' && !generating.value && done.value)
 
 function randomPick(n: number, max: number): number[] {
   const indices = Array.from({ length: max }, (_, i) => i)
@@ -176,15 +177,23 @@ async function handleGenerate() {
         done.value = true
       }
     }
-
-    if (resultText.value.trim()) {
-      emit('result', resultText.value)
-    }
   } catch (e) {
     error.value = `Request failed: ${(e as Error)?.message ?? e}`
   }
 
   generating.value = false
+}
+
+function handleConfirm() {
+  if (resultText.value.trim()) {
+    emit('result', resultText.value)
+  }
+}
+
+function handleDiscard() {
+  resultText.value = ''
+  done.value = false
+  error.value = ''
 }
 
 function handleClose() {
@@ -253,9 +262,13 @@ function handleClose() {
 
           <div v-if="resultText" class="relative">
             <label class="text-xs text-gray-400 block mb-2">Result</label>
-            <div class="w-full px-3 py-2 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 min-h-[80px] max-h-48 overflow-y-auto whitespace-pre-wrap">
-              {{ resultText }}<span v-if="generating" class="animate-pulse text-gray-400">▊</span>
-            </div>
+            <textarea
+              v-model="resultText"
+              class="w-full px-3 py-2 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-none min-h-[100px]"
+              :disabled="generating"
+              :readonly="generating"
+              rows="6"
+            />
           </div>
 
           <div v-if="error" class="text-xs text-red-400 bg-red-900/30 px-3 py-2 rounded">{{ error }}</div>
@@ -264,10 +277,16 @@ function handleClose() {
         <div class="flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-700 shrink-0">
           <button
             class="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
-            @click="handleClose"
+            @click="showResultReview ? handleDiscard() : handleClose()"
             :disabled="generating"
-          >Cancel</button>
+          >{{ showResultReview ? 'Discard' : 'Cancel' }}</button>
           <button
+            v-if="showResultReview"
+            class="px-3 py-1.5 text-xs rounded bg-green-700 hover:bg-green-600 text-green-100"
+            @click="handleConfirm"
+          >Confirm</button>
+          <button
+            v-else
             class="px-3 py-1.5 text-xs rounded disabled:opacity-50"
             :class="generating ? 'bg-blue-900 text-blue-300 cursor-wait' : 'bg-blue-700 hover:bg-blue-600 text-blue-100'"
             :disabled="generating"
