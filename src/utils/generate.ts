@@ -66,16 +66,18 @@ export function assembleGeneratePrompt(
   selectedGreetings: number[],
   selectedLoreEntries: number[],
   userPrompt: string,
+  theme?: string,
 ): ChatMessage[] {
   const msgs: ChatMessage[] = []
   const charName = cardJson.data.name || 'Character'
   const data = cardJson.data
 
+  const styleLine = theme?.trim() ? `Write in the following style/theme: ${theme.trim()}. ` : ''
   msgs.push({
     role: 'system',
     content: 'You are a writing assistant for authoring character cards for roleplay. '
       + 'You help write and improve character descriptions, personalities, scenarios, '
-      + 'example chats, greetings, and lorebook entries. Write in the same style and format as the provided context.',
+      + `example chats, greetings, and lorebook entries. ${styleLine}Write in the same style and format as the provided context.`,
   })
 
   const blocks: string[] = []

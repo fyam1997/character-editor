@@ -50,6 +50,8 @@ const greetingSelections = ref<boolean[]>([])
 const loreSelections = ref<boolean[]>([])
 const userPrompt = ref('')
 const originalPrompt = ref('')
+const theme = ref('')
+const originalTheme = ref('')
 const resultText = ref('')
 const generating = ref(false)
 const error = ref('')
@@ -95,10 +97,14 @@ function initSelections() {
   }
 }
 
+function memoryKey(prefix: string): string {
+  return `${prefix}:${props.field}:${mode.value}`
+}
+
 function initPrompt() {
-  const saved = loadPromptMemory(props.field, mode.value)
-  if (saved) {
-    userPrompt.value = saved
+  const savedPrompt = loadPromptMemory(props.field, mode.value)
+  if (savedPrompt) {
+    userPrompt.value = savedPrompt
   } else {
     let keys: string | undefined
     if (props.field === 'lore' && props.index !== undefined) {
@@ -108,6 +114,13 @@ function initPrompt() {
     userPrompt.value = getDefaultPrompt(props.field, mode.value, keys)
   }
   originalPrompt.value = userPrompt.value
+
+  try {
+    const savedTheme = localStorage.getItem(memoryKey('generateTheme'))
+    theme.value = savedTheme ?? ''
+  } catch { theme.value = '' }
+  originalTheme.value = theme.value
+
   resultText.value = ''
   error.value = ''
   generating.value = false
@@ -135,6 +148,7 @@ async function handleGenerate() {
   if (!store.cardJson) return
 
   savePromptMemory(props.field, mode.value, userPrompt.value)
+  try { localStorage.setItem(memoryKey('generateTheme'), theme.value) } catch {}
 
   generating.value = true
   error.value = ''
@@ -159,6 +173,7 @@ async function handleGenerate() {
     selectedGreetings,
     selectedLore,
     userPrompt.value,
+    theme.value,
   )
 
   try {
@@ -260,6 +275,16 @@ function handleClose() {
                 <span v-if="e.content" class="truncate text-gray-500">— {{ e.content.slice(0, 50) }}</span>
               </label>
             </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Theme (optional)</label>
+            <input
+              v-model="theme"
+              class="w-full px-3 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
+              placeholder="e.g. noir, gothic, humorous, epic fantasy..."
+              :disabled="generating"
+            />
           </div>
 
           <div>
