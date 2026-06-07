@@ -6,16 +6,27 @@ function parseMesExample(mesExample: string): ChatMessage[] {
 
   for (const section of sections) {
     const lines = section.split('\n')
+    let current: ChatMessage | null = null
+
     for (const line of lines) {
       const trimmed = line.trim()
       if (!trimmed) continue
 
-      if (trimmed.startsWith('{{user}}: ')) {
-        result.push({ role: 'system', content: trimmed.slice('{{user}}: '.length), name: 'example_user' })
-      } else if (trimmed.startsWith('{{char}}: ')) {
-        result.push({ role: 'system', content: trimmed.slice('{{char}}: '.length), name: 'example_assistant' })
+      const userMatch = trimmed.match(/^\{\{user\}\}:\s?(.*)/)
+      const charMatch = trimmed.match(/^\{\{char\}\}:\s?(.*)/)
+
+      if (userMatch) {
+        if (current) result.push(current)
+        current = { role: 'system', content: userMatch[1], name: 'example_user' }
+      } else if (charMatch) {
+        if (current) result.push(current)
+        current = { role: 'system', content: charMatch[1], name: 'example_assistant' }
+      } else if (current) {
+        current.content += '\n' + trimmed
       }
     }
+
+    if (current) result.push(current)
   }
 
   return result

@@ -27,6 +27,13 @@ record holds the parsed card JSON plus the raw PNG bytes (if imported from PNG).
 Replaces the concept of local files or a save directory.
 _Avoid_: Recent files, local collection
 
+**Generate**
+A feature that uses the configured LLM to compose or polish card fields. Two
+modes: *generate* (field is empty, write new content) and *polish* (field has
+content, rewrite/improve). Triggered via an ✨ button on individual fields,
+opens a context-selection dialog.
+_Avoid_: Autocomplete, AI fill, magic button
+
 ## Stack
 
 - **Build tool**: Vite

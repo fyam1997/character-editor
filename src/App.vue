@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { ref, watch } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import SystemConfig from './components/SystemConfig.vue'
+import GenerateDialog from './components/GenerateDialog.vue'
 import InfoPanel from './panels/InfoPanel.vue'
 import CharacterPanel from './panels/CharacterPanel.vue'
 import OverridePromptPanel from './panels/OverridePromptPanel.vue'
@@ -11,8 +12,48 @@ import ChatRoom from './components/ChatRoom.vue'
 import { useEditorStore } from './stores/editor'
 import { embedJsonInPng } from './utils/png'
 import type { CharacterCardV2 } from './types'
+import type { GenerateField } from './utils/generate'
 
 const store = useEditorStore()
+
+interface GenerateConfig {
+  field: GenerateField
+  index?: number
+  content: string
+}
+
+const showGenerate = ref(false)
+const genConfig = ref<GenerateConfig | null>(null)
+
+function openGenerate(config: GenerateConfig) {
+  genConfig.value = config
+  showGenerate.value = true
+}
+
+function closeGenerate() {
+  showGenerate.value = false
+  genConfig.value = null
+}
+
+function applyGenerateResult(value: string) {
+  if (!genConfig.value || !store.cardJson) return
+  const { field, index } = genConfig.value
+
+  if (field === 'greeting' && index !== undefined) {
+    store.cardJson.data.alternate_greetings[index] = value
+    if (index === 0) {
+      store.cardJson.data.first_mes = value
+    }
+  } else if (field === 'lore' && index !== undefined) {
+    const entry = store.cardJson.data.character_book?.entries[index]
+    if (entry) entry.content = value
+  } else if (['description', 'personality', 'scenario', 'mes_example'].includes(field)) {
+    (store.cardJson.data as Record<string, unknown>)[field] = value
+  }
+
+  store.scheduleSave()
+  closeGenerate()
+}
 
 watch(() => store.cardJson?.data, (newVal, oldVal) => {
   if (newVal && oldVal && newVal === oldVal) {
@@ -74,10 +115,10 @@ async function handleExport(type: 'json' | 'png') {
           <div class="flex-1 overflow-y-auto">
             <div class="space-y-2 max-w-2xl mx-auto p-4 pb-2">
               <InfoPanel />
-              <CharacterPanel />
+              <CharacterPanel @generate="(field, content) => openGenerate({ field, content })" />
               <OverridePromptPanel />
-              <GreetingsPanel @start-chat="onStartChat" />
-              <LoreBookPanel />
+              <GreetingsPanel @start-chat="onStartChat" @generate="(field, index, content) => openGenerate({ field, index, content })" />
+              <LoreBookPanel @generate="(field, index, content) => openGenerate({ field, index, content })" />
             </div>
           </div>
           <div class="bg-gray-950 py-2 flex gap-2 border-t border-gray-700 text-xs px-4">
@@ -107,4 +148,12 @@ async function handleExport(type: 'json' | 'png') {
       </section>
     </main>
   </div>
+  <GenerateDialog
+    :visible="showGenerate"
+    :field="genConfig?.field ?? 'description'"
+    :index="genConfig?.index"
+    :content="genConfig?.content ?? ''"
+    @close="closeGenerate"
+    @result="applyGenerateResult"
+  />
 </template>

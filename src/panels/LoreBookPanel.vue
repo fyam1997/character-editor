@@ -9,6 +9,10 @@ import { useSortable } from '../utils/useSortable'
 const store = useEditorStore()
 const entryListRef = ref<HTMLElement | null>(null)
 
+const emit = defineEmits<{
+  generate: [field: 'lore', index: number, content: string]
+}>()
+
 const entryKeys = ref<number[]>([])
 let nextEntryKey = 0
 
@@ -135,6 +139,7 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
           :total="book.entries.length"
           @remove="removeEntry(index)"
           @move="moveEntry(index, $event)"
+          @generate="(field, idx, content) => emit('generate', field, idx, content)"
         />
       </div>
       <div v-if="book.entries.length === 0" class="text-xs text-gray-600 py-2">
