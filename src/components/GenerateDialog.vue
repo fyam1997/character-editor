@@ -236,7 +236,6 @@ function handleDiscard() {
 }
 
 function handleClose() {
-  if (generating.value) return
   emit('close')
 }
 </script>
