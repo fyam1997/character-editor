@@ -43,7 +43,6 @@ const fieldLabel = computed(() => {
 const greetingSelections = ref<boolean[]>([])
 const loreSelections = ref<boolean[]>([])
 const userPrompt = ref('')
-const originalPrompt = ref('')
 const theme = ref('')
 const resultText = ref('')
 const generating = ref(false)
@@ -53,7 +52,6 @@ const done = ref(false)
 const greetings = computed(() => store.cardJson?.data.alternate_greetings ?? [])
 const loreEntries = computed(() => store.cardJson?.data.character_book?.entries ?? [])
 
-const isPromptEdited = computed(() => userPrompt.value !== originalPrompt.value)
 const showResultReview = computed(() => resultText.value.trim() !== '' && !generating.value && done.value)
 const hasCharContext = computed(() => {
   const d = store.cardJson?.data
@@ -99,7 +97,6 @@ function initPrompt() {
     }
     userPrompt.value = getDefaultPrompt(props.field, mode.value, keys)
   }
-  originalPrompt.value = userPrompt.value
 
   try {
     const savedTheme = localStorage.getItem(memoryKey('generateTheme'))
@@ -271,7 +268,7 @@ function handleClose() {
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="text-xs text-gray-400">Prompt</label>
-              <button v-if="isPromptEdited" class="text-xs text-gray-500 hover:text-gray-300" @click="handleReset">↺ Reset</button>
+              <button class="text-xs text-gray-500 hover:text-gray-300" @click="handleReset">↺ Reset</button>
             </div>
             <MarkdownField
               :model-value="userPrompt"
