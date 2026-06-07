@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.1] — 2026-06-07
+## [0.2.2] — 2026-06-07
 
 ### Changed
 - Greetings and lorebook panels: replaced top-right "+ Add" buttons with inline
@@ -8,6 +8,10 @@
   top and bottom divider outside the list
 - Greetings and lorebook panels: add/remove animations via TransitionGroup
   (slide+fade on enter/leave, smooth repositioning on move)
+- Top dividers now indented (`ml-8`/`mr-8`) to match internal item dividers
+- Removed unused `computed` import in CollapsibleSection
+
+## [0.2.1] — 2026-06-07
 
 ### Fixed
 - Generate dialog prompt and theme fields now properly bind via `v-model` instead

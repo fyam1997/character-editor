@@ -75,13 +75,13 @@ useSortable(greetingListRef, reorderGreetings, { handle: '.drag-handle' })
 <template>
   <CollapsibleSection title="Greetings">
     <div class="flex items-center gap-2 py-1">
-      <div class="flex-1 h-px bg-gray-700"></div>
+      <div class="flex-1 h-px bg-gray-700 ml-8"></div>
       <button
         class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
         title="Add greeting here"
         @click="addGreeting(0)"
       >+</button>
-      <div class="flex-1 h-px bg-gray-700"></div>
+      <div class="flex-1 h-px bg-gray-700 mr-8"></div>
     </div>
     <div v-if="!store.cardJson || store.cardJson.data.alternate_greetings.length === 0" class="text-xs text-gray-600 py-2">
       No greetings yet.
@@ -121,13 +121,13 @@ useSortable(greetingListRef, reorderGreetings, { handle: '.drag-handle' })
             <MarkdownField :model-value="greeting" @update:model-value="(v: string) => updateGreeting(index, v)" />
           </div>
           <div class="flex items-center gap-2 pt-2 pb-2">
-            <div class="flex-1 h-px bg-gray-700"></div>
+            <div class="flex-1 h-px bg-gray-700 ml-8"></div>
             <button
               class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
               title="Add greeting here"
               @click="addGreeting(index + 1)"
             >+</button>
-            <div class="flex-1 h-px bg-gray-700"></div>
+            <div class="flex-1 h-px bg-gray-700 mr-8"></div>
           </div>
         </div>
       </TransitionGroup>
