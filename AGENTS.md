@@ -29,9 +29,9 @@ Domain glossary: `CONTEXT.md`. ADRs: `docs/adr/`.
 
 ## Commit & Changelog
 
-- Commit frequently in small, focused chunks when on a working branch
+- Each commit should have a single purpose
 - Commit messages: `type:` prefix — `feat:`, `fix:`, `refactor:`, `chore:`, `style:`, `docs:`
-- Update `CHANGELOG.md` for each task, keep it brief (one line per change)
+- Update `CHANGELOG.md` for each working branch, keep it brief (one line per change)
 
 ## Git Workflow
 
