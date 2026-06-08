@@ -84,3 +84,23 @@ export async function* streamChat(
 
   yield { type: 'done' }
 }
+
+export async function* mockStreamText(
+  text: string,
+  wordDelayMs: number = 80,
+  signal?: AbortSignal,
+): AsyncGenerator<ChatChunk> {
+  const words = text.split(/\b/)
+
+  for (const word of words) {
+    if (signal?.aborted) {
+      yield { type: 'error', content: 'Mock stream aborted' }
+      return
+    }
+
+    yield { type: 'text', content: word }
+    await new Promise((r) => setTimeout(r, wordDelayMs))
+  }
+
+  yield { type: 'done' }
+}

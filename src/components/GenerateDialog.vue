@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
-import { streamChat } from '../utils/api'
+import { streamChat, mockStreamText } from '../utils/api'
 import { assembleGeneratePrompt, getMatchingLoreIndices, getDefaultPrompt, loadPromptMemory, savePromptMemory, clearPromptMemory } from '../utils/generate'
 import type { GenerateField, GenerateMode } from '../utils/generate'
 import MarkdownField from './MarkdownField.vue'
@@ -206,6 +206,29 @@ async function handleGenerate() {
   )
 
   if (store.inspectRequest) {
+    if (store.mockInspect) {
+      try {
+        const gen = mockStreamText(store.mockInspectText)
+
+        for await (const chunk of gen) {
+          if (chunk.type === 'text' && chunk.content) {
+            resultText.value += chunk.content
+          } else if (chunk.type === 'error') {
+            error.value = chunk.content ?? 'Mock stream error'
+            generating.value = false
+            return
+          } else if (chunk.type === 'done') {
+            done.value = true
+          }
+        }
+      } catch (e) {
+        error.value = `Mock stream failed: ${(e as Error)?.message ?? e}`
+      }
+
+      generating.value = false
+      return
+    }
+
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages, stream: true }, null, 2)
     generating.value = false
     return

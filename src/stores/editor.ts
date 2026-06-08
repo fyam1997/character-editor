@@ -53,6 +53,24 @@ export const useEditorStore = defineStore('editor', () => {
     localStorage.setItem('inspectRequest', String(v))
   })
 
+  const mockInspect = ref(localStorage.getItem('mockInspect') === 'true')
+  watch(mockInspect, (v) => {
+    localStorage.setItem('mockInspect', String(v))
+  })
+
+  function loadMockInspectText(): string {
+    try {
+      const saved = localStorage.getItem('mockInspectText')
+      if (saved) return saved
+    } catch {}
+    return 'Hello there! I am a mock AI response, streaming word by word to simulate a real API call. You can configure this text to test your streaming UI without hitting any external service.'
+  }
+
+  const mockInspectText = ref(loadMockInspectText())
+  watch(mockInspectText, (v) => {
+    localStorage.setItem('mockInspectText', v)
+  })
+
   const isActive = computed(() => activeCardId.value !== null)
 
   // chat sessions
@@ -233,6 +251,8 @@ export const useEditorStore = defineStore('editor', () => {
     apiConfig,
     systemPrompts,
     inspectRequest,
+    mockInspect,
+    mockInspectText,
     isActive,
     sessions,
     activeSessionId,
