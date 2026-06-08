@@ -9,7 +9,8 @@ import MarkdownField from './MarkdownField.vue'
 import InspectDialog from './InspectDialog.vue'
 
 const store = useEditorStore()
-const input = ref('')
+const chatInput = ref('')
+const sendDisabled = computed(() => !store.activeSessionId || sending.value)
 const sending = ref(false)
 const abortController = ref<AbortController | null>(null)
 const chatEl = ref<HTMLElement | null>(null)
@@ -135,12 +136,15 @@ async function streamAssistantResponse(apiMessages: ChatMessage[]) {
 }
 
 async function sendMessage() {
-  const text = input.value.trim()
-  if (!text || sending.value) return
+  if (sending.value) return
 
-  input.value = ''
-  const userMsg: ChatMessage = { role: 'user', content: text }
-  await store.addMessage(userMsg)
+  const text = chatInput.value.trim()
+
+  if (text) {
+    const userMsg: ChatMessage = { role: 'user', content: text }
+    await store.addMessage(userMsg)
+    chatInput.value = ''
+  }
 
   const session = store.sessions.find((s) => s.id === store.activeSessionId)
   if (!session) return
@@ -316,7 +320,7 @@ function scrollToBottom() {
 
     <div class="flex gap-2">
       <input
-        v-model="input"
+        v-model="chatInput"
         :disabled="sending || !store.activeSessionId"
         @keydown.enter.prevent="sendMessage"
         placeholder="Type a message..."
@@ -324,7 +328,7 @@ function scrollToBottom() {
       />
       <button
         v-if="!sending"
-        :disabled="!input.trim() || !store.activeSessionId"
+        :disabled="sendDisabled"
         class="px-3 py-1.5 text-xs bg-blue-700 hover:bg-blue-600 rounded disabled:opacity-50"
         @click="sendMessage"
       >Send</button>
