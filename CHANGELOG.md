@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.4] — 2026-06-08
+
+### Added
+- Generate dialog and chat room now respect the system config's `mainPrompt` and
+  the card's `system_prompt` (with `{{original}}` substitution), instead of using
+  a hardcoded writing-assistant prompt
+- "Inspect Request" checkbox in the system config panel (above API config) — when
+  checked, clicking Generate or Send displays the API request payload in a popup
+  dialog instead of calling the LLM
+
 ## [0.2.3] — 2026-06-08
 
 ### Changed

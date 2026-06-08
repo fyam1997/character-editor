@@ -20,6 +20,10 @@ const vAutoResize = {
 
 <template>
   <div class="space-y-3">
+    <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+      <input type="checkbox" v-model="store.inspectRequest" />
+      Inspect Request
+    </label>
     <CollapsibleSection title="AI API Config" :defaultOpen="true">
       <div class="space-y-2">
         <div>
