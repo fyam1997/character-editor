@@ -146,17 +146,16 @@ async function sendMessage() {
   if (!session) return
 
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
-  if (store.mockInspect) {
-    abortController.value = new AbortController()
-    await mockStreamResponse()
-  }
   if (store.inspectRequest) {
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
     return
   }
-  if (!store.mockInspect) {
-    await streamAssistantResponse(apiMessages)
+  if (store.mockInspect) {
+    abortController.value = new AbortController()
+    await mockStreamResponse()
+    return
   }
+  await streamAssistantResponse(apiMessages)
 }
 
 function isChatMsg(i: number): boolean {
@@ -200,17 +199,16 @@ async function regenerateMessage(assembledIdx: number) {
   const idx = store.sessions.findIndex((s) => s.id === sid)
   if (idx !== -1) store.sessions[idx] = session
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
-  if (store.mockInspect) {
-    abortController.value = new AbortController()
-    await mockStreamResponse()
-  }
   if (store.inspectRequest) {
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
     return
   }
-  if (!store.mockInspect) {
-    await streamAssistantResponse(apiMessages)
+  if (store.mockInspect) {
+    abortController.value = new AbortController()
+    await mockStreamResponse()
+    return
   }
+  await streamAssistantResponse(apiMessages)
 }
 
 function cancelChat() {

@@ -205,6 +205,12 @@ async function handleGenerate() {
     store.systemPrompts,
   )
 
+  if (store.inspectRequest) {
+    inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages, stream: true }, null, 2)
+    generating.value = false
+    return
+  }
+
   if (store.mockInspect) {
     try {
       const gen = mockStreamText(store.mockInspectText)
@@ -224,40 +230,33 @@ async function handleGenerate() {
     }
 
     generating.value = false
-  }
-
-  if (store.inspectRequest) {
-    inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages, stream: true }, null, 2)
-    generating.value = false
     return
   }
 
-  if (!store.mockInspect) {
-    try {
-      const gen = streamChat(
-        store.apiConfig.baseUrl,
-        store.apiConfig.apiKey,
-        store.apiConfig.model,
-        messages,
-      )
+  try {
+    const gen = streamChat(
+      store.apiConfig.baseUrl,
+      store.apiConfig.apiKey,
+      store.apiConfig.model,
+      messages,
+    )
 
-      for await (const chunk of gen) {
-        if (chunk.type === 'text' && chunk.content) {
-          resultText.value += chunk.content
-        } else if (chunk.type === 'error') {
-          error.value = chunk.content ?? 'Unknown error'
-          generating.value = false
-          return
-        } else if (chunk.type === 'done') {
-          done.value = true
-        }
+    for await (const chunk of gen) {
+      if (chunk.type === 'text' && chunk.content) {
+        resultText.value += chunk.content
+      } else if (chunk.type === 'error') {
+        error.value = chunk.content ?? 'Unknown error'
+        generating.value = false
+        return
+      } else if (chunk.type === 'done') {
+        done.value = true
       }
-    } catch (e) {
-      error.value = `Request failed: ${(e as Error)?.message ?? e}`
     }
-
-    generating.value = false
+  } catch (e) {
+    error.value = `Request failed: ${(e as Error)?.message ?? e}`
   }
+
+  generating.value = false
 }
 
 function handleConfirm() {
