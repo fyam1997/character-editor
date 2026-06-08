@@ -149,13 +149,14 @@ async function sendMessage() {
   if (store.mockInspect) {
     abortController.value = new AbortController()
     await mockStreamResponse()
-    return
   }
   if (store.inspectRequest) {
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
     return
   }
-  await streamAssistantResponse(apiMessages)
+  if (!store.mockInspect) {
+    await streamAssistantResponse(apiMessages)
+  }
 }
 
 function isChatMsg(i: number): boolean {
@@ -193,7 +194,7 @@ async function regenerateMessage(assembledIdx: number) {
   const firstSessionIdx = session.messages[0]?.role === 'system' ? 1 : 0
   const msgIdx = firstSessionIdx + sessionIdx
   if (msgIdx < 0 || msgIdx >= session.messages.length) return
-  session.messages.splice(msgIdx)
+  session.messages.splice(msgIdx, 1)
   session.updatedAt = new Date().toISOString()
   await db.chatSessions.put(session)
   const idx = store.sessions.findIndex((s) => s.id === sid)
@@ -202,13 +203,14 @@ async function regenerateMessage(assembledIdx: number) {
   if (store.mockInspect) {
     abortController.value = new AbortController()
     await mockStreamResponse()
-    return
   }
   if (store.inspectRequest) {
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
     return
   }
-  await streamAssistantResponse(apiMessages)
+  if (!store.mockInspect) {
+    await streamAssistantResponse(apiMessages)
+  }
 }
 
 function cancelChat() {
