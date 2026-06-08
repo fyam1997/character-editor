@@ -68,8 +68,12 @@ export function importCard(buf: ArrayBuffer): ImportResult {
 
   const f = json.data.first_mes
   const g = json.data.alternate_greetings
-  if (f && (!g || g.length === 0)) {
-    json.data.alternate_greetings = [f]
+  if (f) {
+    if (!g || g.length === 0) {
+      json.data.alternate_greetings = [f]
+    } else {
+      g[0] = f
+    }
   }
 
   return { json, pngBlob }
