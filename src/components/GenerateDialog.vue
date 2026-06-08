@@ -271,6 +271,26 @@ async function handleInspectConfirm(payload: string) {
     resultText.value = ''
     done.value = false
 
+    if (store.mockInspect) {
+      try {
+        const gen = mockStreamText(store.mockInspectText)
+        for await (const chunk of gen) {
+          if (chunk.type === 'text' && chunk.content) {
+            resultText.value += chunk.content
+          } else if (chunk.type === 'error') {
+            error.value = chunk.content ?? 'Mock stream error'
+            break
+          } else if (chunk.type === 'done') {
+            done.value = true
+          }
+        }
+      } catch (e) {
+        error.value = `Mock stream failed: ${(e as Error)?.message ?? e}`
+      }
+      generating.value = false
+      return
+    }
+
     try {
       const gen = streamChat(
         store.apiConfig.baseUrl,

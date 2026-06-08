@@ -215,13 +215,18 @@ async function regenerateMessage(assembledIdx: number) {
   await streamAssistantResponse(apiMessages)
 }
 
-function handleInspectConfirm(payload: string) {
+async function handleInspectConfirm(payload: string) {
   try {
     const parsed = JSON.parse(payload)
     const messages = parsed.messages as ChatMessage[]
     if (!Array.isArray(messages)) return
     inspectPayload.value = ''
-    streamAssistantResponse(messages)
+    if (store.mockInspect) {
+      abortController.value = new AbortController()
+      await mockStreamResponse()
+    } else {
+      streamAssistantResponse(messages)
+    }
   } catch {
     // invalid JSON should not reach here (InspectDialog validates)
   }
