@@ -74,13 +74,10 @@ async function handleExport(type: 'json' | 'png') {
     const blob = exportAsJson(json)
     downloadBlob(blob, createExportFilename(name, 'json'))
   } else if (type === 'png') {
-    if (store.pngBlob) {
-      const pngBytes = await store.pngBlob.arrayBuffer()
-      const blob = await exportAsPng(json, pngBytes)
-      downloadBlob(blob, createExportFilename(name, 'png'))
-    } else {
-      alert('No PNG image to export. Import a PNG card first, or export as JSON.')
-    }
+    if (!store.pngBlob) return
+    const pngBytes = await store.pngBlob.arrayBuffer()
+    const blob = await exportAsPng(json, pngBytes)
+    downloadBlob(blob, createExportFilename(name, 'png'))
   }
 }
 </script>
@@ -106,13 +103,14 @@ async function handleExport(type: 'json' | 'png') {
           </div>
           <div class="bg-gray-950 py-2 flex gap-2 border-t border-gray-700 text-xs px-4">
             <button
-              class="flex-1 px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center"
+              class="flex-1 px-2 py-1 bg-indigo-700 hover:bg-indigo-600 text-indigo-100 rounded text-center"
               @click="handleExport('json')"
-            >Export JSON</button>
+            >↓ Export JSON</button>
             <button
-              class="flex-1 px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center"
+              class="flex-1 px-2 py-1 bg-indigo-700 hover:bg-indigo-600 text-indigo-100 rounded text-center disabled:opacity-40 disabled:cursor-not-allowed"
+              :disabled="!store.pngBlob"
               @click="handleExport('png')"
-            >Export PNG</button>
+            >↓ Export PNG</button>
           </div>
         </template>
       </section>
