@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0] — 2026-06-09
+
+### Added
+- Extension editor: type-aware key-value table with dynamic add/remove rows,
+  JSON modal for bulk editing, and proper null/undefined handling
+
+### Fixed
+- Extension row disappearing on input and focus loss during keystroke
+- New extension row being immediately discarded after creation
+
 ## [0.2.6] — 2026-06-08
 
 ### Added
