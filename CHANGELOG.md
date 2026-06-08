@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.6] — 2026-06-08
+
+### Added
+- Debug collapsible section in system config with Inspect Request and Mock
+  Response toggles for inspecting API payload or streaming a mock response
+- Chat messages animate with TransitionGroup for smoother appearance and removal
+
+### Fixed
+- Escape and Ctrl+A behaviour in inspect dialog
+- TDZ error from `assembledInfo` watch ordering
+
+## [0.2.5] — 2026-06-08
+
+### Changed
+- UI backgrounds unified to three-tone scheme for better visual hierarchy
+- Empty MarkdownField shows a border for better affordance
+
 ## [0.2.4] — 2026-06-08
 
 ### Added
