@@ -16,6 +16,9 @@ const chatEl = ref<HTMLElement | null>(null)
 const showSessions = ref(false)
 const inspectPayload = ref('')
 
+const messageKeys = ref<number[]>([])
+let nextMsgKey = 0
+
 const activeSessionName = computed(() => {
   const s = store.sessions.find((s) => s.id === store.activeSessionId)
   return s?.name ?? ''
@@ -29,6 +32,33 @@ const assembledInfo = computed(() => {
   if (!s) return emptyInfo
   return assembleApiMessages(store.cardJson, store.systemPrompts, s.messages)
 })
+
+watch(() => assembledInfo.value, (newInfo, oldInfo) => {
+  if (!oldInfo || oldInfo.sessionStart !== newInfo.sessionStart) {
+    messageKeys.value = newInfo.messages.map(() => nextMsgKey++)
+    return
+  }
+  const newMsgs = newInfo.messages
+  const oldMsgs = oldInfo.messages
+  if (newMsgs.length > oldMsgs.length) {
+    const added = newMsgs.length - messageKeys.value.length
+    for (let i = 0; i < added; i++) {
+      messageKeys.value.push(nextMsgKey++)
+    }
+  } else if (newMsgs.length < oldMsgs.length) {
+    let diffIdx = 0
+    while (diffIdx < newMsgs.length) {
+      if (newMsgs[diffIdx].role !== oldMsgs[diffIdx].role ||
+          newMsgs[diffIdx].content !== oldMsgs[diffIdx].content ||
+          newMsgs[diffIdx].name !== oldMsgs[diffIdx].name) {
+        break
+      }
+      diffIdx++
+    }
+    const removed = oldMsgs.length - newMsgs.length
+    messageKeys.value.splice(diffIdx, removed)
+  }
+}, { immediate: true })
 
 onMounted(() => store.loadSessionsForCard())
 
@@ -192,10 +222,10 @@ function scrollToBottom() {
     </div>
 
     <div ref="chatEl" class="flex-1 overflow-y-auto mb-3 pr-1 flex flex-col">
-      <template v-if="assembledInfo.messages.length > 0">
+      <TransitionGroup v-if="assembledInfo.messages.length > 0" name="list" tag="div" class="relative">
         <div
           v-for="(msg, i) in assembledInfo.messages"
-          :key="i"
+          :key="messageKeys[i]"
           class="text-xs border border-gray-700 bg-gray-800 rounded px-3 py-2 mt-2 border-l-2"
           :class="{
             'border-l-blue-500': msg.role === 'user',
@@ -234,7 +264,7 @@ function scrollToBottom() {
           </div>
           <MarkdownField :model-value="msg.content" readonly />
         </div>
-      </template>
+      </TransitionGroup>
       <div v-else class="flex-1 flex items-center justify-center text-xs text-gray-500">
         Select or start a session to begin chatting.
       </div>
@@ -267,3 +297,25 @@ function scrollToBottom() {
     @close="inspectPayload = ''"
   />
 </template>
+
+<style scoped>
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.25s ease;
+}
+.list-leave-active {
+  position: absolute;
+  width: 100%;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.list-move {
+  transition: transform 0.25s ease;
+}
+</style>
