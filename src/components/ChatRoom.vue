@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
-import { streamChat } from '../utils/api'
+import { streamChat, mockStreamText } from '../utils/api'
 import { assembleApiMessages } from '../utils/prompt-assembly'
 import type { ChatMessage, ChatSession } from '../types'
 import { db } from '../storage/db'
@@ -76,6 +76,32 @@ watch(() => store.activeSessionId, () => {
   showSessions.value = false
 })
 
+async function mockStreamResponse() {
+  sending.value = true
+  let assistantContent = ''
+
+  try {
+    const asstMsg: ChatMessage = { role: 'assistant', content: '' }
+    await store.addMessage(asstMsg)
+
+    for await (const chunk of mockStreamText(store.mockInspectText, 80, abortController.value!.signal)) {
+      if (chunk.type === 'text' && chunk.content) {
+        assistantContent += chunk.content
+        await store.updateLastAssistant(assistantContent)
+        await nextTick()
+        scrollToBottom()
+      } else if (chunk.type === 'error') {
+        await store.updateLastAssistant(`Mock Error: ${chunk.content}`)
+        scrollToBottom()
+        break
+      }
+    }
+  } finally {
+    sending.value = false
+    abortController.value = null
+  }
+}
+
 async function streamAssistantResponse(apiMessages: ChatMessage[]) {
   sending.value = true
   abortController.value = new AbortController()
@@ -124,6 +150,11 @@ async function sendMessage() {
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
     return
   }
+  if (store.mockInspect) {
+    abortController.value = new AbortController()
+    await mockStreamResponse()
+    return
+  }
   await streamAssistantResponse(apiMessages)
 }
 
@@ -162,7 +193,7 @@ async function regenerateMessage(assembledIdx: number) {
   const firstSessionIdx = session.messages[0]?.role === 'system' ? 1 : 0
   const msgIdx = firstSessionIdx + sessionIdx
   if (msgIdx < 0 || msgIdx >= session.messages.length) return
-  session.messages.splice(msgIdx)
+  session.messages.splice(msgIdx, 1)
   session.updatedAt = new Date().toISOString()
   await db.chatSessions.put(session)
   const idx = store.sessions.findIndex((s) => s.id === sid)
@@ -170,6 +201,11 @@ async function regenerateMessage(assembledIdx: number) {
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
   if (store.inspectRequest) {
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
+    return
+  }
+  if (store.mockInspect) {
+    abortController.value = new AbortController()
+    await mockStreamResponse()
     return
   }
   await streamAssistantResponse(apiMessages)

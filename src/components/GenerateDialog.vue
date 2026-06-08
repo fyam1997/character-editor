@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
-import { streamChat } from '../utils/api'
+import { streamChat, mockStreamText } from '../utils/api'
 import { assembleGeneratePrompt, getMatchingLoreIndices, getDefaultPrompt, loadPromptMemory, savePromptMemory, clearPromptMemory } from '../utils/generate'
 import type { GenerateField, GenerateMode } from '../utils/generate'
 import MarkdownField from './MarkdownField.vue'
@@ -155,7 +155,7 @@ watch(userPrompt, (val) => {
 })
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && props.visible && !generating.value) {
+  if (e.key === 'Escape' && props.visible && !generating.value && !inspectPayload.value) {
     handleClose()
   }
 }
@@ -207,6 +207,28 @@ async function handleGenerate() {
 
   if (store.inspectRequest) {
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages, stream: true }, null, 2)
+    generating.value = false
+    return
+  }
+
+  if (store.mockInspect) {
+    try {
+      const gen = mockStreamText(store.mockInspectText)
+
+      for await (const chunk of gen) {
+        if (chunk.type === 'text' && chunk.content) {
+          resultText.value += chunk.content
+        } else if (chunk.type === 'error') {
+          error.value = chunk.content ?? 'Mock stream error'
+          break
+        } else if (chunk.type === 'done') {
+          done.value = true
+        }
+      }
+    } catch (e) {
+      error.value = `Mock stream failed: ${(e as Error)?.message ?? e}`
+    }
+
     generating.value = false
     return
   }
