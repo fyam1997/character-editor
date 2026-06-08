@@ -146,12 +146,12 @@ async function sendMessage() {
   if (!session) return
 
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
+  if (store.mockInspect) {
+    abortController.value = new AbortController()
+    await mockStreamResponse()
+    return
+  }
   if (store.inspectRequest) {
-    if (store.mockInspect) {
-      abortController.value = new AbortController()
-      await mockStreamResponse()
-      return
-    }
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
     return
   }
@@ -199,12 +199,12 @@ async function regenerateMessage(assembledIdx: number) {
   const idx = store.sessions.findIndex((s) => s.id === sid)
   if (idx !== -1) store.sessions[idx] = session
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
+  if (store.mockInspect) {
+    abortController.value = new AbortController()
+    await mockStreamResponse()
+    return
+  }
   if (store.inspectRequest) {
-    if (store.mockInspect) {
-      abortController.value = new AbortController()
-      await mockStreamResponse()
-      return
-    }
     inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
     return
   }
