@@ -124,7 +124,7 @@ function onKeydown(e: KeyboardEvent) {
 }
 .markdown-preview :deep(em) {
   font-style: italic;
-  color: rgb(156 163 175);
+  color: rgb(209 213 219);
 }
 
 .markdown-preview :deep(.dialogue) {
