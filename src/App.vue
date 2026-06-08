@@ -122,7 +122,7 @@ async function handleExport(type: 'json' | 'png') {
           <div class="flex-1 p-4 overflow-y-auto flex flex-col">
             <ChatRoom />
           </div>
-          <div class="w-72 border-l border-gray-700 p-3 overflow-y-auto bg-gray-900/50">
+          <div class="w-72 border-l border-gray-700 p-3 overflow-y-auto">
             <SystemConfig />
           </div>
         </div>
