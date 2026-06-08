@@ -88,6 +88,12 @@ async function sendMessage() {
   if (!session) return
 
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
+  if (store.inspectRequest) {
+    const body = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
+    const asstMsg: ChatMessage = { role: 'assistant', content: body }
+    await store.addMessage(asstMsg)
+    return
+  }
   await streamAssistantResponse(apiMessages)
 }
 
@@ -132,6 +138,12 @@ async function regenerateMessage(assembledIdx: number) {
   const idx = store.sessions.findIndex((s) => s.id === sid)
   if (idx !== -1) store.sessions[idx] = session
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
+  if (store.inspectRequest) {
+    const body = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
+    const asstMsg: ChatMessage = { role: 'assistant', content: body }
+    await store.addMessage(asstMsg)
+    return
+  }
   await streamAssistantResponse(apiMessages)
 }
 
