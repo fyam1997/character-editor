@@ -14,6 +14,7 @@ const preEl = ref<HTMLElement | null>(null)
 
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && props.visible) {
+    e.stopImmediatePropagation()
     emit('close')
   }
   if ((e.ctrlKey || e.metaKey) && e.key === 'a' && props.visible && preEl.value) {
