@@ -29,6 +29,7 @@ Domain glossary: `CONTEXT.md`. ADRs: `docs/adr/`.
 
 ## Commit & Changelog
 
+- Commit after completing each change — don't wait to batch unrelated edits together
 - Each commit should have a single purpose
 - Commit messages: `type:` prefix — `feat:`, `fix:`, `refactor:`, `chore:`, `style:`, `docs:`
 - Update `CHANGELOG.md` for each working branch, keep it brief (one line per change)
