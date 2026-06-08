@@ -10,8 +10,7 @@ import GreetingsPanel from './panels/GreetingsPanel.vue'
 import LoreBookPanel from './panels/LoreBookPanel.vue'
 import ChatRoom from './components/ChatRoom.vue'
 import { useEditorStore } from './stores/editor'
-import { embedJsonInPng } from './utils/png'
-import type { CharacterCardV2 } from './types'
+import { prepareExport, exportAsJson, exportAsPng, downloadBlob, createExportFilename } from './utils/card-io'
 import type { GenerateField } from './utils/generate'
 
 const store = useEditorStore()
@@ -66,36 +65,18 @@ function onStartChat(greeting: string) {
   store.createSession(greeting)
 }
 
-function prepareExport(): CharacterCardV2 | null {
-  if (!store.cardJson) return null
-  const plain: CharacterCardV2 = JSON.parse(JSON.stringify(store.cardJson))
-  const greetings = plain.data.alternate_greetings
-  plain.data.first_mes = greetings[0] ?? ''
-  plain.data.alternate_greetings = greetings.slice(1)
-  return plain
-}
-
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 async function handleExport(type: 'json' | 'png') {
-  const json = prepareExport()
-  if (!json) return
+  if (!store.cardJson) return
+  const json = prepareExport(store.cardJson)
   const name = json.data.name || 'character'
   if (type === 'json') {
-    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' })
-    downloadBlob(blob, `${name}.json`)
+    const blob = exportAsJson(json)
+    downloadBlob(blob, createExportFilename(name, 'json'))
   } else if (type === 'png') {
     if (store.pngBlob) {
       const pngBytes = await store.pngBlob.arrayBuffer()
-      const blob = embedJsonInPng(pngBytes, json)
-      downloadBlob(blob, `${name}.png`)
+      const blob = await exportAsPng(json, pngBytes)
+      downloadBlob(blob, createExportFilename(name, 'png'))
     } else {
       alert('No PNG image to export. Import a PNG card first, or export as JSON.')
     }

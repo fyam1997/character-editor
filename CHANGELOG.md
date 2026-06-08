@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.3] — 2026-06-08
+
+### Changed
+- Import/export logic extracted into standalone `src/utils/card-io.ts` — both
+  `Sidebar.vue` (import) and `App.vue` (export) now delegate to it
+
+### Fixed
+- On import, `first_mes` is now always placed at `alternate_greetings[0]`,
+  even when `alternate_greetings` already has entries (previously only set when
+  the list was empty)
+
 ## [0.2.2] — 2026-06-07
 
 ### Changed
