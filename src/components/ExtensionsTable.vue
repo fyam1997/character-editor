@@ -81,7 +81,6 @@ function addRow() {
     type: 'string',
     value: '',
   })
-  emitValue()
 }
 
 function removeRow(id: number) {
