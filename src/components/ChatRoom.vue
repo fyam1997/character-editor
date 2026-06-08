@@ -18,6 +18,21 @@ const inspectPayload = ref('')
 
 const messageKeys = ref<number[]>([])
 let nextMsgKey = 0
+
+const activeSessionName = computed(() => {
+  const s = store.sessions.find((s) => s.id === store.activeSessionId)
+  return s?.name ?? ''
+})
+
+const emptyInfo = { messages: [] as ChatMessage[], sessionStart: 0, sessionCount: 0 }
+const assembledInfo = computed(() => {
+  const sid = store.activeSessionId
+  if (!sid || !store.cardJson) return emptyInfo
+  const s = store.sessions.find((s) => s.id === sid)
+  if (!s) return emptyInfo
+  return assembleApiMessages(store.cardJson, store.systemPrompts, s.messages)
+})
+
 watch(() => assembledInfo.value, (newInfo, oldInfo) => {
   if (!oldInfo || oldInfo.sessionStart !== newInfo.sessionStart) {
     messageKeys.value = newInfo.messages.map(() => nextMsgKey++)
@@ -44,20 +59,6 @@ watch(() => assembledInfo.value, (newInfo, oldInfo) => {
     messageKeys.value.splice(diffIdx, removed)
   }
 }, { immediate: true })
-
-const activeSessionName = computed(() => {
-  const s = store.sessions.find((s) => s.id === store.activeSessionId)
-  return s?.name ?? ''
-})
-
-const emptyInfo = { messages: [] as ChatMessage[], sessionStart: 0, sessionCount: 0 }
-const assembledInfo = computed(() => {
-  const sid = store.activeSessionId
-  if (!sid || !store.cardJson) return emptyInfo
-  const s = store.sessions.find((s) => s.id === sid)
-  if (!s) return emptyInfo
-  return assembleApiMessages(store.cardJson, store.systemPrompts, s.messages)
-})
 
 onMounted(() => store.loadSessionsForCard())
 
