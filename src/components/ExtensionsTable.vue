@@ -34,6 +34,7 @@ function classify(v: unknown): 'string' | 'number' | 'boolean' | 'json' {
 }
 
 function toRows(record: Record<string, unknown>): ExtensionRow[] {
+  if (!record) return []
   return Object.entries(record).map(([key, value]) => ({
     id: nextId++,
     key,
