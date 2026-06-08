@@ -84,19 +84,40 @@ export function assembleGeneratePrompt(
   selectedLoreEntries: number[],
   userPrompt: string,
   theme?: string,
+  systemPrompts?: { mainPrompt: string; auxiliaryPrompt: string; postHistoryPrompt: string },
 ): ChatMessage[] {
   const msgs: ChatMessage[] = []
   const charName = cardJson.data.name || 'Character'
   const data = cardJson.data
 
-  const styleLine = theme?.trim() ? `Write in the following style/theme: ${theme.trim()}. ` : ''
+  const defaultMain = 'You are a writing assistant for authoring character cards for roleplay. '
+    + 'You help write and improve character descriptions, personalities, scenarios, '
+    + 'example chats, greetings, and lorebook entries.'
+  const presetPrompt = systemPrompts?.mainPrompt || defaultMain
+
+  let mainContent: string
+  if (data.system_prompt) {
+    if (data.system_prompt.includes('{{original}}')) {
+      mainContent = data.system_prompt.replace('{{original}}', presetPrompt)
+    } else {
+      mainContent = data.system_prompt
+    }
+  } else {
+    mainContent = presetPrompt
+  }
+
+  const styleLine = theme?.trim() ? ` Write in the following style/theme: ${theme.trim()}.` : ''
+  const outputInstruction = ' Respond with ONLY the raw content — no explanations, no meta-commentary, no markdown wrappers, no labels.'
+
   msgs.push({
     role: 'system',
-    content: 'You are a writing assistant for authoring character cards for roleplay. '
-      + 'You help write and improve character descriptions, personalities, scenarios, '
-      + `example chats, greetings, and lorebook entries. ${styleLine}`
-      + 'Respond with ONLY the raw content — no explanations, no meta-commentary, no markdown wrappers, no labels.',
+    content: replacePlaceholders(mainContent, charName) + styleLine + outputInstruction,
   })
+
+  const auxiliaryPrompt = systemPrompts?.auxiliaryPrompt
+  if (auxiliaryPrompt) {
+    msgs.push({ role: 'system', content: replacePlaceholders(auxiliaryPrompt, charName) })
+  }
 
   const blocks: string[] = []
 

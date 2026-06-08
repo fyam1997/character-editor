@@ -200,6 +200,7 @@ async function handleGenerate() {
     selectedLore,
     userPrompt.value,
     theme.value,
+    store.systemPrompts,
   )
 
   try {
