@@ -203,6 +203,14 @@ async function handleGenerate() {
     store.systemPrompts,
   )
 
+  if (store.inspectRequest) {
+    const body = JSON.stringify({ model: store.apiConfig.model, messages, stream: true }, null, 2)
+    resultText.value = body
+    generating.value = false
+    done.value = true
+    return
+  }
+
   try {
     const gen = streamChat(
       store.apiConfig.baseUrl,

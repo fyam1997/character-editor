@@ -48,6 +48,11 @@ export const useEditorStore = defineStore('editor', () => {
     localStorage.setItem('systemPrompts', JSON.stringify(v))
   }, { deep: true })
 
+  const inspectRequest = ref(localStorage.getItem('inspectRequest') === 'true')
+  watch(inspectRequest, (v) => {
+    localStorage.setItem('inspectRequest', String(v))
+  })
+
   const isActive = computed(() => activeCardId.value !== null)
 
   // chat sessions
@@ -227,6 +232,7 @@ export const useEditorStore = defineStore('editor', () => {
     pngBlob,
     apiConfig,
     systemPrompts,
+    inspectRequest,
     isActive,
     sessions,
     activeSessionId,

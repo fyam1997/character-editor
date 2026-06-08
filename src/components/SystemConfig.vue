@@ -20,6 +20,13 @@ const vAutoResize = {
 
 <template>
   <div class="space-y-3">
+    <div class="flex items-center gap-2">
+      <button
+        class="flex-1 px-2 py-1 text-xs rounded"
+        :class="store.inspectRequest ? 'bg-yellow-700 hover:bg-yellow-600 text-yellow-100' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'"
+        @click="store.inspectRequest = !store.inspectRequest"
+      >Inspect Request</button>
+    </div>
     <CollapsibleSection title="AI API Config" :defaultOpen="true">
       <div class="space-y-2">
         <div>
