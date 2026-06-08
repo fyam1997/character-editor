@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import type { CharacterBookEntry } from '../types'
 import MarkdownField from './MarkdownField.vue'
+import ExtensionsTable from './ExtensionsTable.vue'
 
 const props = defineProps<{
   entry: CharacterBookEntry
@@ -140,6 +141,12 @@ function update<K extends keyof CharacterBookEntry>(key: K, value: CharacterBook
             class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
           />
         </div>
+        <details class="mt-2 group">
+          <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-300 select-none">Entry Extensions</summary>
+          <div class="mt-1">
+            <ExtensionsTable v-model="entry.extensions" />
+          </div>
+        </details>
       </template>
     </div>
   </div>

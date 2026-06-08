@@ -8,6 +8,7 @@ import CharacterPanel from './panels/CharacterPanel.vue'
 import OverridePromptPanel from './panels/OverridePromptPanel.vue'
 import GreetingsPanel from './panels/GreetingsPanel.vue'
 import LoreBookPanel from './panels/LoreBookPanel.vue'
+import ExtensionsPanel from './panels/ExtensionsPanel.vue'
 import ChatRoom from './components/ChatRoom.vue'
 import { useEditorStore } from './stores/editor'
 import { prepareExport, exportAsJson, exportAsPng, downloadBlob, createExportFilename } from './utils/card-io'
@@ -100,6 +101,7 @@ async function handleExport(type: 'json' | 'png') {
               <OverridePromptPanel />
               <GreetingsPanel @start-chat="onStartChat" @generate="(field, index, content) => openGenerate({ field, index, content })" />
               <LoreBookPanel @generate="(field, index, content) => openGenerate({ field, index, content })" />
+              <ExtensionsPanel />
             </div>
           </div>
           <div class="bg-gray-950 py-2 flex gap-2 border-t border-gray-700 text-xs px-4">

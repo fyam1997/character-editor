@@ -4,6 +4,7 @@ import { useEditorStore } from '../stores/editor'
 import type { CharacterBookEntry } from '../types'
 import EntryCard from '../components/EntryCard.vue'
 import CollapsibleSection from '../components/CollapsibleSection.vue'
+import ExtensionsTable from '../components/ExtensionsTable.vue'
 import { useSortable } from '../utils/useSortable'
 
 const store = useEditorStore()
@@ -122,6 +123,12 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
 
         </div>
       </div>
+      <details class="mt-2 group">
+        <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-300 select-none">Book Extensions</summary>
+        <div class="mt-1">
+          <ExtensionsTable v-model="book.extensions" />
+        </div>
+      </details>
       <div class="flex items-center gap-2 py-1">
         <div class="flex-1 h-px bg-gray-800 ml-8"></div>
         <button
