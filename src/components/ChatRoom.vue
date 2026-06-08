@@ -6,6 +6,7 @@ import { assembleApiMessages } from '../utils/prompt-assembly'
 import type { ChatMessage, ChatSession } from '../types'
 import { db } from '../storage/db'
 import MarkdownField from './MarkdownField.vue'
+import InspectDialog from './InspectDialog.vue'
 
 const store = useEditorStore()
 const input = ref('')
@@ -13,6 +14,7 @@ const sending = ref(false)
 const abortController = ref<AbortController | null>(null)
 const chatEl = ref<HTMLElement | null>(null)
 const showSessions = ref(false)
+const inspectPayload = ref('')
 
 const activeSessionName = computed(() => {
   const s = store.sessions.find((s) => s.id === store.activeSessionId)
@@ -89,9 +91,7 @@ async function sendMessage() {
 
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
   if (store.inspectRequest) {
-    const body = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
-    const asstMsg: ChatMessage = { role: 'assistant', content: body }
-    await store.addMessage(asstMsg)
+    inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
     return
   }
   await streamAssistantResponse(apiMessages)
@@ -139,9 +139,7 @@ async function regenerateMessage(assembledIdx: number) {
   if (idx !== -1) store.sessions[idx] = session
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
   if (store.inspectRequest) {
-    const body = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
-    const asstMsg: ChatMessage = { role: 'assistant', content: body }
-    await store.addMessage(asstMsg)
+    inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
     return
   }
   await streamAssistantResponse(apiMessages)
@@ -263,4 +261,9 @@ function scrollToBottom() {
       >Stop</button>
     </div>
   </div>
+  <InspectDialog
+    :visible="!!inspectPayload"
+    :payload="inspectPayload"
+    @close="inspectPayload = ''"
+  />
 </template>

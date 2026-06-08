@@ -5,6 +5,7 @@ import { streamChat } from '../utils/api'
 import { assembleGeneratePrompt, getMatchingLoreIndices, getDefaultPrompt, loadPromptMemory, savePromptMemory, clearPromptMemory } from '../utils/generate'
 import type { GenerateField, GenerateMode } from '../utils/generate'
 import MarkdownField from './MarkdownField.vue'
+import InspectDialog from './InspectDialog.vue'
 
 const props = defineProps<{
   visible: boolean
@@ -44,6 +45,7 @@ const greetingSelections = ref<boolean[]>([])
 const loreSelections = ref<boolean[]>([])
 const userPrompt = ref('')
 const theme = ref('')
+const inspectPayload = ref('')
 const resultText = ref('')
 const generating = ref(false)
 const error = ref('')
@@ -204,10 +206,8 @@ async function handleGenerate() {
   )
 
   if (store.inspectRequest) {
-    const body = JSON.stringify({ model: store.apiConfig.model, messages, stream: true }, null, 2)
-    resultText.value = body
+    inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages, stream: true }, null, 2)
     generating.value = false
-    done.value = true
     return
   }
 
@@ -365,4 +365,9 @@ function handleClose() {
       </div>
     </div>
   </Teleport>
+  <InspectDialog
+    :visible="!!inspectPayload"
+    :payload="inspectPayload"
+    @close="inspectPayload = ''"
+  />
 </template>
