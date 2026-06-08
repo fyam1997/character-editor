@@ -5,6 +5,8 @@
 ### Added
 - Extension editor: type-aware key-value table with dynamic add/remove rows,
   JSON modal for bulk editing, and proper null/undefined handling
+- Inspect dialog now editable with a textarea and Confirm button — edit the
+  request payload and confirm to call the API with your changes
 
 ### Fixed
 - Extension row disappearing on input and focus loss during keystroke
