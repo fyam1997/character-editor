@@ -104,11 +104,11 @@ async function handleExport(type: 'json' | 'png') {
           </div>
           <div class="bg-gray-950 py-2 flex gap-2 border-t border-gray-700 text-xs px-4">
             <button
-              class="flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-center"
+              class="flex-1 px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center"
               @click="handleExport('json')"
             >Export JSON</button>
             <button
-              class="flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-center"
+              class="flex-1 px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center"
               @click="handleExport('png')"
             >Export PNG</button>
           </div>
@@ -122,7 +122,7 @@ async function handleExport(type: 'json' | 'png') {
           <div class="flex-1 p-4 overflow-y-auto flex flex-col">
             <ChatRoom />
           </div>
-          <div class="w-72 border-l border-gray-700 p-3 overflow-y-auto bg-gray-900/50">
+          <div class="w-72 border-l border-gray-700 p-3 overflow-y-auto">
             <SystemConfig />
           </div>
         </div>

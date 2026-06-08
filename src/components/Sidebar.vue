@@ -80,13 +80,13 @@ async function newCard() {
     </div>
     <div class="p-2 border-b border-gray-700 flex gap-1">
       <button
-        class="flex-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
+        class="flex-1 px-2 py-1 text-xs bg-gray-800 hover:bg-gray-700 rounded"
         @click="newCard"
       >
         New
       </button>
       <button
-        class="flex-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
+        class="flex-1 px-2 py-1 text-xs bg-gray-800 hover:bg-gray-700 rounded"
         @click="handleImport"
       >
         Import
