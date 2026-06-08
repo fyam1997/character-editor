@@ -2,9 +2,11 @@
 import { ref, watch, computed } from 'vue'
 import ExtensionsJsonModal from './ExtensionsJsonModal.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: Record<string, unknown>
-}>()
+}>(), {
+  modelValue: () => ({}),
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: Record<string, unknown>]
