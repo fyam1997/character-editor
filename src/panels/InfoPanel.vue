@@ -47,7 +47,7 @@ function pickImage() {
           <span v-else class="text-2xl text-gray-600">+</span>
         </div>
         <button
-          class="w-full py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+          class="w-full py-1 text-xs bg-gray-800 hover:bg-gray-700 rounded text-gray-300"
           @click="pickImage"
         >Upload</button>
       </div>

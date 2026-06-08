@@ -114,7 +114,7 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
             Recursive Scanning
           </label>
           <button
-              class="px-2 py-0.5 ml-2 text-xs bg-gray-700 hover:bg-gray-600 rounded"
+              class="px-2 py-0.5 ml-2 text-xs bg-gray-800 hover:bg-gray-700 rounded"
               @click="sortInsertionOrder"
           >
             Sort Insertion Order
@@ -123,13 +123,13 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
         </div>
       </div>
       <div class="flex items-center gap-2 py-1">
-        <div class="flex-1 h-px bg-gray-700 ml-8"></div>
+        <div class="flex-1 h-px bg-gray-800 ml-8"></div>
         <button
-          class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
+          class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-full"
           title="Add entry here"
           @click="addEntry(0)"
         >+</button>
-        <div class="flex-1 h-px bg-gray-700 mr-8"></div>
+        <div class="flex-1 h-px bg-gray-800 mr-8"></div>
       </div>
       <div v-if="book.entries.length === 0" class="text-xs text-gray-600 py-2">
         No lorebook entries. Add one to define character-specific knowledge.
@@ -149,13 +149,13 @@ useSortable(entryListRef, reorderEntries, { handle: '.drag-handle' })
               @generate="(field, idx, content) => emit('generate', field, idx, content)"
             />
             <div class="flex items-center gap-2 pt-2 pb-2">
-              <div class="flex-1 h-px bg-gray-700 ml-8"></div>
+              <div class="flex-1 h-px bg-gray-800 ml-8"></div>
               <button
-                class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full"
+                class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-full"
                 title="Add entry here"
                 @click="addEntry(index + 1)"
               >+</button>
-              <div class="flex-1 h-px bg-gray-700 mr-8"></div>
+              <div class="flex-1 h-px bg-gray-800 mr-8"></div>
             </div>
           </div>
         </TransitionGroup>

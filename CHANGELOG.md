@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.2.6] — 2026-06-08
+
+### Added
+- Debug collapsible section in system config with Inspect Request and Mock
+  Response toggles for inspecting API payload or streaming a mock response
+- Chat messages animate with TransitionGroup for smoother appearance and removal
+
+### Fixed
+- Escape and Ctrl+A behaviour in inspect dialog
+- TDZ error from `assembledInfo` watch ordering
+
+## [0.2.5] — 2026-06-08
+
+### Changed
+- UI backgrounds unified to three-tone scheme for better visual hierarchy
+- Empty MarkdownField shows a border for better affordance
+
+## [0.2.4] — 2026-06-08
+
+### Added
+- Generate dialog and chat room now respect the system config's `mainPrompt` and
+  the card's `system_prompt` (with `{{original}}` substitution), instead of using
+  a hardcoded writing-assistant prompt
+- "Inspect Request" checkbox in the system config panel (above API config) — when
+  checked, clicking Generate or Send displays the API request payload in a popup
+  dialog instead of calling the LLM
+
+## [0.2.3] — 2026-06-08
+
+### Changed
+- Import/export logic extracted into standalone `src/utils/card-io.ts` — both
+  `Sidebar.vue` (import) and `App.vue` (export) now delegate to it
+
+### Fixed
+- On import, `first_mes` is now always placed at `alternate_greetings[0]`,
+  even when `alternate_greetings` already has entries (previously only set when
+  the list was empty)
+
 ## [0.2.2] — 2026-06-07
 
 ### Changed

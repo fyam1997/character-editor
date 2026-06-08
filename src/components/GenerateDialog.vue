@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
-import { streamChat } from '../utils/api'
+import { streamChat, mockStreamText } from '../utils/api'
 import { assembleGeneratePrompt, getMatchingLoreIndices, getDefaultPrompt, loadPromptMemory, savePromptMemory, clearPromptMemory } from '../utils/generate'
 import type { GenerateField, GenerateMode } from '../utils/generate'
 import MarkdownField from './MarkdownField.vue'
+import InspectDialog from './InspectDialog.vue'
 
 const props = defineProps<{
   visible: boolean
@@ -44,6 +45,7 @@ const greetingSelections = ref<boolean[]>([])
 const loreSelections = ref<boolean[]>([])
 const userPrompt = ref('')
 const theme = ref('')
+const inspectPayload = ref('')
 const resultText = ref('')
 const generating = ref(false)
 const error = ref('')
@@ -153,7 +155,7 @@ watch(userPrompt, (val) => {
 })
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && props.visible && !generating.value) {
+  if (e.key === 'Escape' && props.visible && !generating.value && !inspectPayload.value) {
     handleClose()
   }
 }
@@ -200,7 +202,36 @@ async function handleGenerate() {
     selectedLore,
     userPrompt.value,
     theme.value,
+    store.systemPrompts,
   )
+
+  if (store.inspectRequest) {
+    inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages, stream: true }, null, 2)
+    generating.value = false
+    return
+  }
+
+  if (store.mockInspect) {
+    try {
+      const gen = mockStreamText(store.mockInspectText)
+
+      for await (const chunk of gen) {
+        if (chunk.type === 'text' && chunk.content) {
+          resultText.value += chunk.content
+        } else if (chunk.type === 'error') {
+          error.value = chunk.content ?? 'Mock stream error'
+          break
+        } else if (chunk.type === 'done') {
+          done.value = true
+        }
+      }
+    } catch (e) {
+      error.value = `Mock stream failed: ${(e as Error)?.message ?? e}`
+    }
+
+    generating.value = false
+    return
+  }
 
   try {
     const gen = streamChat(
@@ -342,7 +373,7 @@ function handleClose() {
 
           <div v-if="resultText" class="w-full flex items-center gap-2">
             <button
-              class="flex-1 px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+              class="flex-1 px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 rounded disabled:opacity-50"
               @click="handleDiscard"
               :disabled="generating"
             >Discard</button>
@@ -356,4 +387,9 @@ function handleClose() {
       </div>
     </div>
   </Teleport>
+  <InspectDialog
+    :visible="!!inspectPayload"
+    :payload="inspectPayload"
+    @close="inspectPayload = ''"
+  />
 </template>

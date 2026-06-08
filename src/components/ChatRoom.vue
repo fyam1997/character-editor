@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
-import { streamChat } from '../utils/api'
+import { streamChat, mockStreamText } from '../utils/api'
 import { assembleApiMessages } from '../utils/prompt-assembly'
 import type { ChatMessage, ChatSession } from '../types'
 import { db } from '../storage/db'
 import MarkdownField from './MarkdownField.vue'
+import InspectDialog from './InspectDialog.vue'
 
 const store = useEditorStore()
-const input = ref('')
+const chatInput = ref('')
+const sendDisabled = computed(() => !store.activeSessionId || sending.value)
 const sending = ref(false)
 const abortController = ref<AbortController | null>(null)
 const chatEl = ref<HTMLElement | null>(null)
 const showSessions = ref(false)
+const inspectPayload = ref('')
+
+const messageKeys = ref<number[]>([])
+let nextMsgKey = 0
 
 const activeSessionName = computed(() => {
   const s = store.sessions.find((s) => s.id === store.activeSessionId)
@@ -27,6 +33,33 @@ const assembledInfo = computed(() => {
   if (!s) return emptyInfo
   return assembleApiMessages(store.cardJson, store.systemPrompts, s.messages)
 })
+
+watch(() => assembledInfo.value, (newInfo, oldInfo) => {
+  if (!oldInfo || oldInfo.sessionStart !== newInfo.sessionStart) {
+    messageKeys.value = newInfo.messages.map(() => nextMsgKey++)
+    return
+  }
+  const newMsgs = newInfo.messages
+  const oldMsgs = oldInfo.messages
+  if (newMsgs.length > oldMsgs.length) {
+    const added = newMsgs.length - messageKeys.value.length
+    for (let i = 0; i < added; i++) {
+      messageKeys.value.push(nextMsgKey++)
+    }
+  } else if (newMsgs.length < oldMsgs.length) {
+    let diffIdx = 0
+    while (diffIdx < newMsgs.length) {
+      if (newMsgs[diffIdx].role !== oldMsgs[diffIdx].role ||
+          newMsgs[diffIdx].content !== oldMsgs[diffIdx].content ||
+          newMsgs[diffIdx].name !== oldMsgs[diffIdx].name) {
+        break
+      }
+      diffIdx++
+    }
+    const removed = oldMsgs.length - newMsgs.length
+    messageKeys.value.splice(diffIdx, removed)
+  }
+}, { immediate: true })
 
 onMounted(() => store.loadSessionsForCard())
 
@@ -43,6 +76,32 @@ watch(() => store.activeCardId, async () => {
 watch(() => store.activeSessionId, () => {
   showSessions.value = false
 })
+
+async function mockStreamResponse() {
+  sending.value = true
+  let assistantContent = ''
+
+  try {
+    const asstMsg: ChatMessage = { role: 'assistant', content: '' }
+    await store.addMessage(asstMsg)
+
+    for await (const chunk of mockStreamText(store.mockInspectText, 80, abortController.value!.signal)) {
+      if (chunk.type === 'text' && chunk.content) {
+        assistantContent += chunk.content
+        await store.updateLastAssistant(assistantContent)
+        await nextTick()
+        scrollToBottom()
+      } else if (chunk.type === 'error') {
+        await store.updateLastAssistant(`Mock Error: ${chunk.content}`)
+        scrollToBottom()
+        break
+      }
+    }
+  } finally {
+    sending.value = false
+    abortController.value = null
+  }
+}
 
 async function streamAssistantResponse(apiMessages: ChatMessage[]) {
   sending.value = true
@@ -77,17 +136,29 @@ async function streamAssistantResponse(apiMessages: ChatMessage[]) {
 }
 
 async function sendMessage() {
-  const text = input.value.trim()
-  if (!text || sending.value) return
+  if (sending.value) return
 
-  input.value = ''
-  const userMsg: ChatMessage = { role: 'user', content: text }
-  await store.addMessage(userMsg)
+  const text = chatInput.value.trim()
+
+  if (text) {
+    const userMsg: ChatMessage = { role: 'user', content: text }
+    await store.addMessage(userMsg)
+    chatInput.value = ''
+  }
 
   const session = store.sessions.find((s) => s.id === store.activeSessionId)
   if (!session) return
 
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
+  if (store.inspectRequest) {
+    inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
+    return
+  }
+  if (store.mockInspect) {
+    abortController.value = new AbortController()
+    await mockStreamResponse()
+    return
+  }
   await streamAssistantResponse(apiMessages)
 }
 
@@ -126,12 +197,21 @@ async function regenerateMessage(assembledIdx: number) {
   const firstSessionIdx = session.messages[0]?.role === 'system' ? 1 : 0
   const msgIdx = firstSessionIdx + sessionIdx
   if (msgIdx < 0 || msgIdx >= session.messages.length) return
-  session.messages.splice(msgIdx)
+  session.messages.splice(msgIdx, 1)
   session.updatedAt = new Date().toISOString()
   await db.chatSessions.put(session)
   const idx = store.sessions.findIndex((s) => s.id === sid)
   if (idx !== -1) store.sessions[idx] = session
   const apiMessages = assembleApiMessages(store.cardJson, store.systemPrompts, session.messages).messages
+  if (store.inspectRequest) {
+    inspectPayload.value = JSON.stringify({ model: store.apiConfig.model, messages: apiMessages, stream: true }, null, 2)
+    return
+  }
+  if (store.mockInspect) {
+    abortController.value = new AbortController()
+    await mockStreamResponse()
+    return
+  }
   await streamAssistantResponse(apiMessages)
 }
 
@@ -182,11 +262,11 @@ function scrollToBottom() {
     </div>
 
     <div ref="chatEl" class="flex-1 overflow-y-auto mb-3 pr-1 flex flex-col">
-      <template v-if="assembledInfo.messages.length > 0">
+      <TransitionGroup v-if="assembledInfo.messages.length > 0" name="list" tag="div" class="relative">
         <div
           v-for="(msg, i) in assembledInfo.messages"
-          :key="i"
-          class="text-xs border border-gray-700 bg-gray-900 rounded px-3 py-2 mt-2 border-l-2"
+          :key="messageKeys[i]"
+          class="text-xs border border-gray-700 bg-gray-800 rounded px-3 py-2 mt-2 border-l-2"
           :class="{
             'border-l-blue-500': msg.role === 'user',
             'border-l-green-500': msg.role === 'assistant',
@@ -222,9 +302,17 @@ function scrollToBottom() {
               >✕</button>
             </span>
           </div>
-          <MarkdownField :model-value="msg.content" readonly />
+          <div v-if="isChatMsg(i) && isAssistantMsg(i) && !msg.content && sending" class="flex items-center gap-1 py-0.5">
+            <span class="text-gray-400 animate-pulse">Thinking</span>
+            <span class="flex gap-0.5">
+              <span class="w-1 h-1 bg-gray-500 rounded-full animate-dot" style="animation-delay: 0ms"></span>
+              <span class="w-1 h-1 bg-gray-500 rounded-full animate-dot" style="animation-delay: 150ms"></span>
+              <span class="w-1 h-1 bg-gray-500 rounded-full animate-dot" style="animation-delay: 300ms"></span>
+            </span>
+          </div>
+          <MarkdownField v-else :model-value="msg.content" readonly />
         </div>
-      </template>
+      </TransitionGroup>
       <div v-else class="flex-1 flex items-center justify-center text-xs text-gray-500">
         Select or start a session to begin chatting.
       </div>
@@ -232,7 +320,7 @@ function scrollToBottom() {
 
     <div class="flex gap-2">
       <input
-        v-model="input"
+        v-model="chatInput"
         :disabled="sending || !store.activeSessionId"
         @keydown.enter.prevent="sendMessage"
         placeholder="Type a message..."
@@ -240,7 +328,7 @@ function scrollToBottom() {
       />
       <button
         v-if="!sending"
-        :disabled="!input.trim() || !store.activeSessionId"
+        :disabled="sendDisabled"
         class="px-3 py-1.5 text-xs bg-blue-700 hover:bg-blue-600 rounded disabled:opacity-50"
         @click="sendMessage"
       >Send</button>
@@ -251,4 +339,40 @@ function scrollToBottom() {
       >Stop</button>
     </div>
   </div>
+  <InspectDialog
+    :visible="!!inspectPayload"
+    :payload="inspectPayload"
+    @close="inspectPayload = ''"
+  />
 </template>
+
+<style scoped>
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.25s ease;
+}
+.list-leave-active {
+  position: absolute;
+  width: 100%;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.list-move {
+  transition: transform 0.25s ease;
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.3); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.animate-dot {
+  animation: dot-bounce 1.4s ease-in-out infinite both;
+}
+</style>
