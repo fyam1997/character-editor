@@ -51,7 +51,10 @@ function onKeydown(e: KeyboardEvent) {
   <div v-else>
     <div
       v-if="!editing"
-      class="min-h-[2em] px-2 py-1.5 text-xs bg-gray-800 rounded text-gray-200 cursor-text markdown-preview"
+      :class="[
+        'min-h-[2em] px-2 py-1.5 text-xs bg-gray-800 rounded text-gray-200 cursor-text markdown-preview',
+        !modelValue ? 'border border-gray-600' : ''
+      ]"
       @click="startEdit"
     >
       <div v-if="!modelValue" class="text-gray-500">Click to edit...</div>
