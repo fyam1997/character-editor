@@ -31,21 +31,21 @@ const vAutoResize = {
           <input
             v-model="store.apiConfig.apiKey"
             type="password"
-            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200"
+            class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
           />
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">Base URL</label>
           <input
             v-model="store.apiConfig.baseUrl"
-            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200"
+            class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
           />
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">Model</label>
           <input
             v-model="store.apiConfig.model"
-            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200"
+            class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
           />
         </div>
       </div>
@@ -59,7 +59,7 @@ const vAutoResize = {
             v-model="store.systemPrompts.mainPrompt"
             v-auto-resize
             @input="autoResize"
-            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200 resize-none overflow-hidden"
+            class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-none overflow-hidden"
           ></textarea>
         </div>
         <div>
@@ -68,7 +68,7 @@ const vAutoResize = {
             v-model="store.systemPrompts.auxiliaryPrompt"
             v-auto-resize
             @input="autoResize"
-            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200 resize-none overflow-hidden"
+            class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-none overflow-hidden"
           ></textarea>
         </div>
         <div>
@@ -77,7 +77,7 @@ const vAutoResize = {
             v-model="store.systemPrompts.postHistoryPrompt"
             v-auto-resize
             @input="autoResize"
-            class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-gray-200 resize-none overflow-hidden"
+            class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 resize-none overflow-hidden"
           ></textarea>
         </div>
       </div>
