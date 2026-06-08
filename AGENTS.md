@@ -26,7 +26,13 @@ Domain glossary: `CONTEXT.md`. ADRs: `docs/adr/`.
 - Zod + VeeValidate for form validation
 - Pinia for shared state (`src/stores/`)
 - TailwindCSS, no component library
-- [Conventional Commits](https://www.conventionalcommits.org/) for all commits
+
+## Commit & Changelog
+
+- Commit after completing each change — don't wait to batch unrelated edits together
+- Each commit should have a single purpose
+- Commit messages: `type:` prefix — `feat:`, `fix:`, `refactor:`, `chore:`, `style:`, `docs:`
+- Update `CHANGELOG.md` for each working branch, keep it brief (one line per change)
 
 ## Git Workflow
 
