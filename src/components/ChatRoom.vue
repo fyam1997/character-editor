@@ -298,7 +298,15 @@ function scrollToBottom() {
               >✕</button>
             </span>
           </div>
-          <MarkdownField :model-value="msg.content" readonly />
+          <div v-if="isChatMsg(i) && isAssistantMsg(i) && !msg.content && sending" class="flex items-center gap-1 py-0.5">
+            <span class="text-gray-400 animate-pulse">Thinking</span>
+            <span class="flex gap-0.5">
+              <span class="w-1 h-1 bg-gray-500 rounded-full animate-dot" style="animation-delay: 0ms"></span>
+              <span class="w-1 h-1 bg-gray-500 rounded-full animate-dot" style="animation-delay: 150ms"></span>
+              <span class="w-1 h-1 bg-gray-500 rounded-full animate-dot" style="animation-delay: 300ms"></span>
+            </span>
+          </div>
+          <MarkdownField v-else :model-value="msg.content" readonly />
         </div>
       </TransitionGroup>
       <div v-else class="flex-1 flex items-center justify-center text-xs text-gray-500">
@@ -353,5 +361,14 @@ function scrollToBottom() {
 }
 .list-move {
   transition: transform 0.25s ease;
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.3); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.animate-dot {
+  animation: dot-bounce 1.4s ease-in-out infinite both;
 }
 </style>
