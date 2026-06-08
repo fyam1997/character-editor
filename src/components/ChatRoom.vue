@@ -215,6 +215,23 @@ async function regenerateMessage(assembledIdx: number) {
   await streamAssistantResponse(apiMessages)
 }
 
+async function handleInspectConfirm(payload: string) {
+  try {
+    const parsed = JSON.parse(payload)
+    const messages = parsed.messages as ChatMessage[]
+    if (!Array.isArray(messages)) return
+    inspectPayload.value = ''
+    if (store.mockInspect) {
+      abortController.value = new AbortController()
+      await mockStreamResponse()
+    } else {
+      streamAssistantResponse(messages)
+    }
+  } catch {
+    // invalid JSON should not reach here (InspectDialog validates)
+  }
+}
+
 function cancelChat() {
   abortController.value?.abort()
   sending.value = false
@@ -343,6 +360,7 @@ function scrollToBottom() {
     :visible="!!inspectPayload"
     :payload="inspectPayload"
     @close="inspectPayload = ''"
+    @confirm="handleInspectConfirm"
   />
 </template>
 

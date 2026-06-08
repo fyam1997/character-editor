@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import { streamChat, mockStreamText } from '../utils/api'
+import type { ChatMessage } from '../types'
 import { assembleGeneratePrompt, getMatchingLoreIndices, getDefaultPrompt, loadPromptMemory, savePromptMemory, clearPromptMemory } from '../utils/generate'
 import type { GenerateField, GenerateMode } from '../utils/generate'
 import MarkdownField from './MarkdownField.vue'
@@ -259,6 +260,66 @@ async function handleGenerate() {
   generating.value = false
 }
 
+async function handleInspectConfirm(payload: string) {
+  try {
+    const parsed = JSON.parse(payload)
+    const messages = parsed.messages as ChatMessage[]
+    if (!Array.isArray(messages)) return
+    inspectPayload.value = ''
+    generating.value = true
+    error.value = ''
+    resultText.value = ''
+    done.value = false
+
+    if (store.mockInspect) {
+      try {
+        const gen = mockStreamText(store.mockInspectText)
+        for await (const chunk of gen) {
+          if (chunk.type === 'text' && chunk.content) {
+            resultText.value += chunk.content
+          } else if (chunk.type === 'error') {
+            error.value = chunk.content ?? 'Mock stream error'
+            break
+          } else if (chunk.type === 'done') {
+            done.value = true
+          }
+        }
+      } catch (e) {
+        error.value = `Mock stream failed: ${(e as Error)?.message ?? e}`
+      }
+      generating.value = false
+      return
+    }
+
+    try {
+      const gen = streamChat(
+        store.apiConfig.baseUrl,
+        store.apiConfig.apiKey,
+        store.apiConfig.model,
+        messages,
+      )
+
+      for await (const chunk of gen) {
+        if (chunk.type === 'text' && chunk.content) {
+          resultText.value += chunk.content
+        } else if (chunk.type === 'error') {
+          error.value = chunk.content ?? 'Unknown error'
+          generating.value = false
+          return
+        } else if (chunk.type === 'done') {
+          done.value = true
+        }
+      }
+    } catch (e) {
+      error.value = `Request failed: ${(e as Error)?.message ?? e}`
+    }
+
+    generating.value = false
+  } catch {
+    // invalid JSON should not reach here
+  }
+}
+
 function handleConfirm() {
   if (resultText.value.trim()) {
     emit('result', resultText.value)
@@ -391,5 +452,6 @@ function handleClose() {
     :visible="!!inspectPayload"
     :payload="inspectPayload"
     @close="inspectPayload = ''"
+    @confirm="handleInspectConfirm"
   />
 </template>

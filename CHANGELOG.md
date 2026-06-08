@@ -5,8 +5,12 @@
 ### Added
 - Extension editor: type-aware key-value table with dynamic add/remove rows,
   JSON modal for bulk editing, and proper null/undefined handling
+- Inspect dialog now editable with a textarea and Confirm button — edit the
+  request payload and confirm to call the API with your changes
 
 ### Fixed
+- Inspect dialog Confirm now respects the Mock Response toggle, routing to mock
+  stream when enabled instead of calling the real API
 - Extension row disappearing on input and focus loss during keystroke
 - New extension row being immediately discarded after creation
 
