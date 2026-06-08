@@ -155,7 +155,7 @@ watch(userPrompt, (val) => {
 })
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && props.visible && !generating.value) {
+  if (e.key === 'Escape' && props.visible && !generating.value && !inspectPayload.value) {
     handleClose()
   }
 }
