@@ -468,9 +468,26 @@ function handleClose() {
             {{ generating ? 'Generating...' : 'Generate' }}
           </button>
 
-          <div v-if="resultText" class="relative">
+          <div v-if="generating || resultText" class="relative">
             <label class="text-xs text-gray-400 block mb-2">Result</label>
-            <MarkdownField :model-value="resultText" :disabled="generating" />
+            <div v-if="generating && !resultText" class="flex items-center gap-1 py-2">
+              <span class="text-gray-400 animate-pulse">Thinking</span>
+              <span class="flex gap-0.5">
+                <span
+                  class="w-1 h-1 bg-gray-500 rounded-full animate-dot"
+                  style="animation-delay: 0ms"
+                ></span>
+                <span
+                  class="w-1 h-1 bg-gray-500 rounded-full animate-dot"
+                  style="animation-delay: 150ms"
+                ></span>
+                <span
+                  class="w-1 h-1 bg-gray-500 rounded-full animate-dot"
+                  style="animation-delay: 300ms"
+                ></span>
+              </span>
+            </div>
+            <MarkdownField v-else :model-value="resultText" :disabled="generating" />
           </div>
 
           <div v-if="error" class="text-xs text-red-400 bg-red-900/30 px-3 py-2 rounded">
@@ -504,3 +521,22 @@ function handleClose() {
     @confirm="handleInspectConfirm"
   />
 </template>
+
+<style scoped>
+@keyframes dot-bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.3);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-dot {
+  animation: dot-bounce 1.4s ease-in-out infinite both;
+}
+</style>

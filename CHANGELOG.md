@@ -32,6 +32,12 @@
   JSON modal for bulk editing, and proper null/undefined handling
 - Inspect dialog now editable with a textarea and Confirm button — edit the
   request payload and confirm to call the API with your changes
+- Generate dialog: loading indicator (animated dots) in result area while
+  generating, matching the chat room style
+
+### Changed
+- Generate dialog: `theme` and `outputInstruction` are now standalone system
+  messages instead of being concatenated into the main prompt
 
 ### Fixed
 - Inspect dialog Confirm now respects the Mock Response toggle, routing to mock
