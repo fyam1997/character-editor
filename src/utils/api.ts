@@ -87,7 +87,7 @@ export async function* streamChat(
 
 export async function* mockStreamText(
   text: string,
-  wordDelayMs: number = 80,
+  wordDelayMs: number = 30,
   signal?: AbortSignal,
 ): AsyncGenerator<ChatChunk> {
   const words = text.split(/\b/)
