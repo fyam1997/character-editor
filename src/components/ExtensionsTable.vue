@@ -22,6 +22,7 @@ let nextId = 0
 const rows = ref<ExtensionRow[]>([])
 const jsonRowId = ref<number | null>(null)
 const jsonBuffer = ref('')
+let selfChange = false
 
 const jsonRow = computed(() => rows.value.find(r => r.id === jsonRowId.value))
 
@@ -67,11 +68,20 @@ function syncRows() {
 }
 
 watch(() => props.modelValue, () => {
+  if (selfChange) {
+    selfChange = false
+    return
+  }
   syncRows()
 }, { deep: true, immediate: true })
 
 function emitValue() {
+  selfChange = true
   emit('update:modelValue', fromRows(rows.value))
+}
+
+function emitIfKeyed(row: ExtensionRow) {
+  if (row.key) emitValue()
 }
 
 function addRow() {
@@ -101,7 +111,7 @@ function saveJson(json: string) {
   const row = rows.value.find(r => r.id === jsonRowId.value)
   if (row) {
     row.value = json
-    emitValue()
+    emitIfKeyed(row)
   }
   jsonRowId.value = null
 }
@@ -121,7 +131,6 @@ function onTypeChange(row: ExtensionRow) {
       row.value = '{}'
     }
   }
-  emitValue()
 }
 </script>
 
@@ -132,13 +141,13 @@ function onTypeChange(row: ExtensionRow) {
       <div v-for="row in rows" :key="row.id" class="flex items-center gap-1">
         <input
           :value="row.key"
-          @input="row.key = ($event.target as HTMLInputElement).value; emitValue()"
+          @input="row.key = ($event.target as HTMLInputElement).value; emitIfKeyed(row)"
           placeholder="key"
           class="w-32 px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 font-mono"
         />
         <select
           :value="row.type"
-          @change="row.type = ($event.target as HTMLSelectElement).value as ExtensionRow['type']; onTypeChange(row)"
+          @change="row.type = ($event.target as HTMLSelectElement).value as ExtensionRow['type']; onTypeChange(row); emitIfKeyed(row)"
           class="w-20 px-1 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
         >
           <option value="string">String</option>
@@ -149,14 +158,14 @@ function onTypeChange(row: ExtensionRow) {
         <template v-if="row.type === 'string'">
           <input
             :value="row.value as string"
-            @input="row.value = ($event.target as HTMLInputElement).value; emitValue()"
+            @input="row.value = ($event.target as HTMLInputElement).value; emitIfKeyed(row)"
             class="flex-1 px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 font-mono"
           />
         </template>
         <template v-else-if="row.type === 'number'">
           <input
             :value="row.value as number"
-            @input="row.value = Number(($event.target as HTMLInputElement).value) || 0; emitValue()"
+            @input="row.value = Number(($event.target as HTMLInputElement).value) || 0; emitIfKeyed(row)"
             type="number"
             class="flex-1 px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 font-mono"
           />
@@ -166,7 +175,7 @@ function onTypeChange(row: ExtensionRow) {
             <input
               type="checkbox"
               :checked="row.value === true || row.value === 'true'"
-              @change="row.value = ($event.target as HTMLInputElement).checked; emitValue()"
+              @change="row.value = ($event.target as HTMLInputElement).checked; emitIfKeyed(row)"
             />
             {{ row.value === true || row.value === 'true' ? 'true' : 'false' }}
           </label>
