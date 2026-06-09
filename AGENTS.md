@@ -1,6 +1,6 @@
 # Character Card Editor
 
-Domain glossary: `CONTEXT.md`. ADRs: `docs/adr/`.
+Domain glossary: `CONTEXT.md`. ADRs: `docs/adr/`. Plans: `docs/plans/`.
 
 ## Development Commands
 
