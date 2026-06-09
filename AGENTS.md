@@ -29,10 +29,11 @@ Domain glossary: `CONTEXT.md`. Spec: `spec_v2.md`. ADRs: `docs/adr/`. Plans: `do
 
 ## Commit & Changelog
 
-- Commit after completing each change — don't wait to batch unrelated edits together
-- Each commit should have a single purpose
+**You should commit your changes after finishing task**
+
+- Each commit should have a single purpose, avoid making a commit too large
 - Commit messages: `type:` prefix — `feat:`, `fix:`, `refactor:`, `chore:`, `style:`, `docs:`
-- Update `CHANGELOG.md` for each working branch, keep it brief (one line per change)
+- Update `CHANGELOG.md` after finished task
 
 ## Git Workflow
 
