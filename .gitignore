@@ -2,3 +2,10 @@ node_modules
 dist
 *.local
 .idea
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/playwright/user-data/
+*.trace.zip

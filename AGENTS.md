@@ -1,3 +1,7 @@
+**You should commit your changes after finishing task**
+**You should commit your changes after finishing task**
+**You should commit your changes after finishing task**
+
 # Character Card Editor
 
 Domain glossary: `CONTEXT.md`. Spec: `spec_v2.md`. ADRs: `docs/adr/`. Plans: `docs/plans/`.
@@ -6,7 +10,7 @@ Domain glossary: `CONTEXT.md`. Spec: `spec_v2.md`. ADRs: `docs/adr/`. Plans: `do
 
 | Command            | Description                     |
 | ------------------ | ------------------------------- |
-| `npm run dev`      | Start Vite dev server           |
+| ~~`npm run dev`~~  | ~~Start Vite dev server~~ — DO NOT RUN |
 | `npm run build`    | Type-check (vue-tsc) then build |
 
 ## Project Structure
