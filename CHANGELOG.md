@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.0] — 2026-06-09
+## [0.3.0] — 2026-06-11
 
 ### Added
 - Extension editor: type-aware key-value table with dynamic add/remove rows,
@@ -13,6 +13,10 @@
   stream when enabled instead of calling the real API
 - Extension row disappearing on input and focus loss during keystroke
 - New extension row being immediately discarded after creation
+
+### Changed
+- Moved `plan-0.3.0.md` into `docs/plans/`, added plan and spec references to
+  AGENTS.md, cleaned up stale CONTEXT.md and ADR files
 
 ## [0.2.6] — 2026-06-08
 
