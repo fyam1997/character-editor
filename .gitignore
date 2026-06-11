@@ -2,6 +2,7 @@ node_modules
 dist
 *.local
 .idea
+.todo.md
 
 # Playwright
 /test-results/

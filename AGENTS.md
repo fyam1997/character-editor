@@ -1,28 +1,21 @@
-**You should commit your changes after finishing task**
-**You should commit your changes after finishing task**
-**You should commit your changes after finishing task**
-
 # Character Card Editor
 
-Domain glossary: `CONTEXT.md`. Spec: `spec_v2.md`. ADRs: `docs/adr/`. Plans: `docs/plans/`.
+A tool for creating and editing Character Card V2 documents.
 
-## Development Commands
+Spec: `spec_v2.md`. ADRs: `docs/adr/`. Plans: `docs/plans/`.
 
-| Command            | Description                     |
-| ------------------ | ------------------------------- |
-| ~~`npm run dev`~~  | ~~Start Vite dev server~~ — DO NOT RUN |
-| `npm run build`    | Type-check (vue-tsc) then build |
+Local TODO: `.todo.md`
 
 ## Project Structure
 
-| Directory        | Purpose                          |
-| ---------------- | -------------------------------- |
-| `src/components` | Reusable Vue components          |
+| Directory        | Purpose                             |
+|------------------|-------------------------------------|
+| `src/components` | Reusable Vue components             |
 | `src/panels`     | Main panels (editor, chat, sidebar) |
-| `src/stores`     | Pinia stores                     |
-| `src/storage`    | IndexedDB/Dexie helpers          |
-| `src/schemas`    | Zod schemas                      |
-| `src/utils`      | Utilities (card I/O, API, etc.)  |
+| `src/stores`     | Pinia stores                        |
+| `src/storage`    | IndexedDB/Dexie helpers             |
+| `src/schemas`    | Zod schemas                         |
+| `src/utils`      | Utilities (card I/O, API, etc.)     |
 
 ## Code Conventions
 
@@ -34,6 +27,8 @@ Domain glossary: `CONTEXT.md`. Spec: `spec_v2.md`. ADRs: `docs/adr/`. Plans: `do
 ## Commit & Changelog
 
 **You should commit your changes after finishing task**
+**You should commit your changes after finishing task**
+**You should commit your changes after finishing task**
 
 - Each commit should have a single purpose, avoid making a commit too large
 - Commit messages: `type:` prefix — `feat:`, `fix:`, `refactor:`, `chore:`, `style:`, `docs:`
@@ -41,7 +36,7 @@ Domain glossary: `CONTEXT.md`. Spec: `spec_v2.md`. ADRs: `docs/adr/`. Plans: `do
 
 ## Git Workflow
 
-- Branch from `develop-X.Y.Z`, never from `master`
+- Branch from `develop-X.Y.Z`
 - Branches: `feature/*`, `fix/*`, or `enhance/*`
 - Merge with `--no-ff`, never squash or rebase
 - Releases: merge `develop-X.Y.Z` → `master`, then tag `vX.Y.Z`
