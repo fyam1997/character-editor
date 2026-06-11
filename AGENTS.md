@@ -40,3 +40,9 @@ Local TODO: `.todo.md`
 - Branches: `feature/*`, `fix/*`, or `enhance/*`
 - Merge with `--no-ff`, never squash or rebase
 - Releases: merge `develop-X.Y.Z` → `master`, then tag `vX.Y.Z`
+
+## Test
+
+Before you try to test with playwright, check if dev server is running.
+DO NOT try to run dev server if it's not running.
+If it's not running, just skip playwright test and suggest user to start a dev server for you.
