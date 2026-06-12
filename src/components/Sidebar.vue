@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 import { useEditorStore } from '../stores/editor';
 import { importCard } from '../utils/card-io';
-import type { CharacterCardV2 } from '../types';
+import type { CharacterCardV3 } from '../types';
 
 const store = useEditorStore();
 
@@ -53,9 +53,9 @@ async function removeCard(id: number) {
 }
 
 async function newCard() {
-  const empty: CharacterCardV2 = {
-    spec: 'chara_card_v2',
-    spec_version: '2.0',
+  const empty: CharacterCardV3 = {
+    spec: 'chara_card_v3',
+    spec_version: '3.0',
     data: {
       name: '',
       description: '',
@@ -67,6 +67,7 @@ async function newCard() {
       system_prompt: '',
       post_history_instructions: '',
       alternate_greetings: [''],
+      group_only_greetings: [],
       tags: [],
       creator: '',
       character_version: '',

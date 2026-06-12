@@ -1,4 +1,4 @@
-import type { CharacterCardV2, ChatMessage, CharacterBookEntry } from '../types';
+import type { CharacterCardV2, CharacterCardV3, ChatMessage, LorebookEntry } from '../types';
 
 export type GenerateField =
   | 'description'
@@ -84,7 +84,7 @@ export function clearPromptMemory(field: GenerateField, mode: GenerateMode): voi
   } catch {}
 }
 
-export function getMatchingLoreIndices(entries: CharacterBookEntry[], texts: string[]): number[] {
+export function getMatchingLoreIndices(entries: LorebookEntry[], texts: string[]): number[] {
   const allText = texts.join('\n').toLowerCase();
   const indices: number[] = [];
   for (let i = 0; i < entries.length; i++) {
@@ -103,7 +103,7 @@ export function getMatchingLoreIndices(entries: CharacterBookEntry[], texts: str
 }
 
 export function assembleGeneratePrompt(
-  cardJson: CharacterCardV2,
+  cardJson: CharacterCardV2 | CharacterCardV3,
   mode: GenerateMode,
   currentContent: string,
   selectedGreetings: number[],

@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import type { CharacterCardV2, CardRecord, ChatSession, ChatMessage } from '../types';
+import type { CharacterCardV2, CharacterCardV3, CardRecord, ChatSession, ChatMessage } from '../types';
 import { db } from '../storage/db';
+import { coerceV2toV3 } from '../utils/coerce-v2-to-v3';
 
 function loadApiConfig() {
   try {
@@ -13,7 +14,7 @@ function loadApiConfig() {
 
 export const useEditorStore = defineStore('editor', () => {
   const activeCardId = ref<number | null>(null);
-  const cardJson = ref<CharacterCardV2 | null>(null);
+  const cardJson = ref<CharacterCardV3 | null>(null);
   const cards = ref<CardRecord[]>([]);
   const pngBlob = ref<Blob | undefined>(undefined);
 
@@ -131,9 +132,9 @@ export const useEditorStore = defineStore('editor', () => {
     await loadCards();
   }
 
-  async function setActiveCard(id: number, json: CharacterCardV2) {
+  async function setActiveCard(id: number, json: CharacterCardV2 | CharacterCardV3) {
     activeCardId.value = id;
-    cardJson.value = json;
+    cardJson.value = json.spec === 'chara_card_v2' ? coerceV2toV3(json) : json;
     const record = await db.cards.get(id);
     pngBlob.value = record?.pngBlob;
     localStorage.setItem('lastActiveCardId', String(id));
@@ -163,7 +164,7 @@ export const useEditorStore = defineStore('editor', () => {
     scheduleSave();
   }
 
-  async function addCard(cardJson_: CharacterCardV2, blob?: Blob): Promise<number | undefined> {
+  async function addCard(cardJson_: CharacterCardV2 | CharacterCardV3, blob?: Blob): Promise<number | undefined> {
     const now = new Date().toISOString();
     const plain = toPlain(cardJson_);
     const id = await db.cards.add({

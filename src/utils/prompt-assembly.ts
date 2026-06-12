@@ -1,4 +1,4 @@
-import type { CharacterCardV2, ChatMessage } from '../types';
+import type { CharacterCardV2, CharacterCardV3, ChatMessage } from '../types';
 
 function parseMesExample(mesExample: string): ChatMessage[] {
   const result: ChatMessage[] = [];
@@ -45,7 +45,7 @@ function replacePlaceholders(text: string, charName: string): string {
 }
 
 function getLoreEntries(
-  data: CharacterCardV2['data'],
+  data: (CharacterCardV2 | CharacterCardV3)['data'],
   sessionMessages: ChatMessage[],
 ): { beforeChar: string; afterChar: string } {
   const beforeParts: string[] = [];
@@ -84,7 +84,7 @@ export interface AssembledResult {
 }
 
 export function assembleApiMessages(
-  cardJson: CharacterCardV2 | null,
+  cardJson: CharacterCardV2 | CharacterCardV3 | null,
   systemPrompts: { mainPrompt: string; auxiliaryPrompt: string; postHistoryPrompt: string },
   sessionMessages: ChatMessage[],
 ): AssembledResult {
