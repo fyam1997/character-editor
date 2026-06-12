@@ -93,8 +93,9 @@ function treeWalkerRowCol(container: HTMLElement, target: Node, targetOff: numbe
           remaining -= parts[lineIdx].length + 1
           lineIdx++
         }
+        if (inNewBlock) row++
         row += lineIdx
-        col = remaining
+        col += remaining
       } else if (inNewBlock && effectiveLines > 0 && parts.slice(0, effectiveLines).some(p => p.length > 0)) {
         row += effectiveLines
         col = parts[effectiveLines - 1].length
@@ -128,8 +129,9 @@ function visibleToSourceRow(row: number): number {
     if (/^(?:[-*_]\s*){3,}$/.test(l.trim())) continue
     visible.push(i)
   }
-  const srcRow = visible[row] ?? Math.min(row, sourceLines.length - 1)
-  debugLog('visibleToSource visible:', JSON.stringify(visible), 'row:', row, '→ srcRow:', srcRow)
+  const idx = Math.max(0, row - 1)
+  const srcRow = idx < visible.length ? visible[idx] : Math.min(idx, sourceLines.length - 1)
+  debugLog('visibleToSource visible:', JSON.stringify(visible), 'row:', row, 'idx:', idx, '→ srcRow:', srcRow)
   return srcRow
 }
 
@@ -137,17 +139,124 @@ function sourceOffset(row: number, col: number): number {
   const sourceLines = props.modelValue.split('\n')
   const sourceLine = sourceLines[row] || ''
 
-  const prefixMatch = sourceLine.match(/^(\s*#{1,6}\s+|\s*[-*]\s+|\s*\d+\.\s+|\s*>\s?)/)
-  const prefixLen = prefixMatch ? prefixMatch[0].length : 0
-  const adjustedCol = col + prefixLen
+  let srcIdx = 0
+  let rendIdx = 0
+
+  const skipPrefix = sourceLine.match(/^\s*(#{1,6}\s+|[-*]\s+|\d+\.\s+|>\s?)/)
+  if (skipPrefix) srcIdx = skipPrefix[0].length
+
+  while (srcIdx < sourceLine.length && rendIdx < col) {
+    const ch = sourceLine[srcIdx]
+
+    if (ch === '*' && sourceLine[srcIdx + 1] === '*') {
+      const close = sourceLine.indexOf('**', srcIdx + 2)
+      if (close !== -1) {
+        srcIdx += 2
+        const take = Math.min(close - srcIdx, col - rendIdx)
+        if (take > 0) { srcIdx += take; rendIdx += take }
+        if (rendIdx >= col) break
+        srcIdx = close + 2
+        continue
+      }
+    }
+
+    if (ch === '*' && sourceLine[srcIdx + 1] !== '*') {
+      const close = sourceLine.indexOf('*', srcIdx + 1)
+      if (close !== -1) {
+        srcIdx++
+        const take = Math.min(close - srcIdx, col - rendIdx)
+        if (take > 0) { srcIdx += take; rendIdx += take }
+        if (rendIdx >= col) break
+        srcIdx = close + 1
+        continue
+      }
+    }
+
+    if (ch === '_' && sourceLine[srcIdx + 1] === '_') {
+      const close = sourceLine.indexOf('__', srcIdx + 2)
+      if (close !== -1) {
+        srcIdx += 2
+        const take = Math.min(close - srcIdx, col - rendIdx)
+        if (take > 0) { srcIdx += take; rendIdx += take }
+        if (rendIdx >= col) break
+        srcIdx = close + 2
+        continue
+      }
+    }
+
+    if (ch === '_' && sourceLine[srcIdx + 1] !== '_') {
+      const close = sourceLine.indexOf('_', srcIdx + 1)
+      if (close !== -1) {
+        srcIdx++
+        const take = Math.min(close - srcIdx, col - rendIdx)
+        if (take > 0) { srcIdx += take; rendIdx += take }
+        if (rendIdx >= col) break
+        srcIdx = close + 1
+        continue
+      }
+    }
+
+    if (ch === '`') {
+      const close = sourceLine.indexOf('`', srcIdx + 1)
+      if (close !== -1) {
+        srcIdx++
+        const take = Math.min(close - srcIdx, col - rendIdx)
+        if (take > 0) { srcIdx += take; rendIdx += take }
+        if (rendIdx >= col) break
+        srcIdx = close + 1
+        continue
+      }
+    }
+
+    if (ch === '~' && sourceLine[srcIdx + 1] === '~') {
+      const close = sourceLine.indexOf('~~', srcIdx + 2)
+      if (close !== -1) {
+        srcIdx += 2
+        const take = Math.min(close - srcIdx, col - rendIdx)
+        if (take > 0) { srcIdx += take; rendIdx += take }
+        if (rendIdx >= col) break
+        srcIdx = close + 2
+        continue
+      }
+    }
+
+    if (ch === '!' && sourceLine[srcIdx + 1] === '[') {
+      const closeBracket = sourceLine.indexOf(']', srcIdx + 2)
+      if (closeBracket !== -1) {
+        srcIdx += 2
+        const take = Math.min(closeBracket - srcIdx, col - rendIdx)
+        if (take > 0) { srcIdx += take; rendIdx += take }
+        if (rendIdx >= col) break
+        srcIdx = sourceLine.indexOf(')', closeBracket)
+        if (srcIdx !== -1) { srcIdx++; continue }
+      }
+    }
+
+    if (ch === '[') {
+      const closeBracket = sourceLine.indexOf(']', srcIdx + 1)
+      if (closeBracket !== -1) {
+        srcIdx++
+        const take = Math.min(closeBracket - srcIdx, col - rendIdx)
+        if (take > 0) { srcIdx += take; rendIdx += take }
+        if (rendIdx >= col) break
+        srcIdx = sourceLine.indexOf(')', closeBracket)
+        if (srcIdx !== -1) { srcIdx++; continue }
+      }
+    }
+
+    srcIdx++
+    rendIdx++
+  }
+
+  const adjustedCol = Math.min(srcIdx, sourceLine.length)
 
   let pos = 0
   for (let i = 0; i < row; i++) {
     pos += sourceLines[i].length + 1
   }
-  pos += Math.min(adjustedCol, sourceLine.length)
+  pos += adjustedCol
   const result = Math.min(pos, props.modelValue.length)
-  debugLog('sourceOffset row:', row, 'col:', col, 'prefixLen:', prefixLen, 'adjustedCol:', adjustedCol, 'sourceLine:', JSON.stringify(sourceLine), '→ pos:', result)
+  debugLog('sourceOffset row:', row, 'col:', col, 'adjustedCol:', adjustedCol, 'sourceLine:', JSON.stringify(sourceLine), '→ pos:', result)
   return result
 }
 
