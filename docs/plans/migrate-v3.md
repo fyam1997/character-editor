@@ -242,18 +242,15 @@ v3-core ← v3-lore ← v3-prompt ← v3-panels
 
 Base branch: `develop-X.Y.Z` (create if not exists).
 
-## Excluded V3 Features (Simplified)
+## Deferred & Excluded Features
 
-Features from the spec intentionally not implemented or simplified:
+Features from the spec intentionally deferred or simplified:
 
-| Feature | Spec Section | Decision |
+| Feature | Spec Section | Status |
 |---|---|---|
-| `creator_notes_multilingual` | §`creator_notes_multilingual` | Simplified to single `creator_notes` field. No language selector; editor stores and displays one set of notes. |
-| Lorebook decorators system | §Decorators | Not implemented. All `@@`/`@@@` decorators are ignored; raw content is stored but decorators are not parsed or applied during prompt assembly. |
-| Curly Braced Syntaxes (CBS) | §Curly Braced Syntaxes | Not implemented. `{{char}}`, `{{user}}`, `{{random:}}`, etc. are not resolved. Raw text passes through. |
-| `@@disable_ui_prompt` decorator | §`@@disable_ui_prompt` | Defer — requires decorator engine first |
-| Full lorebook optional fields UI | §Optional `entries` Fields | `name`, `priority`, `comment`, `selective`, `secondary_keys`, `position` fields exist in types/schemas but have no UI controls in EntryCard. |
-| PNG `chara-ext-asset_:` chunks | §PNG/APNG | Not read or written. Deferred with CHARX. |
+| `creator_notes_multilingual` | §`creator_notes_multilingual` | **Simplified** — single `creator_notes` field, no language selector |
+| CHARX format (`.charx` zip) | §CHARX | **Deferred** — PNG `ccv3` + JSON only for now |
+| PNG `chara-ext-asset_:` chunks | §PNG/APNG | **Deferred** — not read or written |
 
 ## Out of Scope
 
