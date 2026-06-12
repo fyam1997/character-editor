@@ -12,8 +12,10 @@ const emit = defineEmits<{
 
 const store = useEditorStore();
 const greetingListRef = ref<HTMLElement | null>(null);
+const groupGreetingListRef = ref<HTMLElement | null>(null);
 
 const greetingKeys = ref<number[]>([]);
+const groupGreetingKeys = ref<number[]>([]);
 let nextKey = 0;
 
 watch(
@@ -73,7 +75,45 @@ function removeGreeting(index: number) {
   }
 }
 
+function syncGroupKeys() {
+  const len = store.cardJson?.data.group_only_greetings.length ?? 0;
+  while (groupGreetingKeys.value.length < len) {
+    groupGreetingKeys.value.push(nextKey++);
+  }
+  if (groupGreetingKeys.value.length > len) {
+    groupGreetingKeys.value.length = len;
+  }
+}
+
+watch(
+  () => store.cardJson?.data.group_only_greetings.length,
+  syncGroupKeys,
+  { immediate: true },
+);
+
+function addGroupGreeting(index: number) {
+  if (!store.cardJson) return;
+  store.cardJson.data.group_only_greetings.splice(index, 0, '');
+  groupGreetingKeys.value.splice(index, 0, nextKey++);
+}
+
+function removeGroupGreeting(index: number) {
+  if (!store.cardJson) return;
+  store.cardJson.data.group_only_greetings.splice(index, 1);
+  groupGreetingKeys.value.splice(index, 1);
+}
+
+function reorderGroupGreetings(oldIndex: number, newIndex: number) {
+  if (!store.cardJson) return;
+  const arr = store.cardJson.data.group_only_greetings;
+  const item = arr.splice(oldIndex, 1)[0];
+  arr.splice(newIndex, 0, item);
+  const key = groupGreetingKeys.value.splice(oldIndex, 1)[0];
+  groupGreetingKeys.value.splice(newIndex, 0, key);
+}
+
 useSortable(greetingListRef, reorderGreetings, { handle: '.drag-handle' });
+useSortable(groupGreetingListRef, reorderGroupGreetings, { handle: '.drag-handle' });
 </script>
 
 <template>
@@ -157,6 +197,73 @@ useSortable(greetingListRef, reorderGreetings, { handle: '.drag-handle' });
         </div>
       </TransitionGroup>
     </div>
+
+    <details class="mt-3 group">
+      <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-300 select-none">
+        Group-only Greetings
+      </summary>
+      <div class="mt-2 space-y-2">
+        <div class="flex items-center gap-2 py-1">
+          <div class="flex-1 h-px bg-gray-800 ml-8"></div>
+          <button
+            class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-full"
+            title="Add group greeting"
+            @click="addGroupGreeting(0)"
+          >
+            +
+          </button>
+          <div class="flex-1 h-px bg-gray-800 mr-8"></div>
+        </div>
+        <div
+          v-if="(store.cardJson?.data.group_only_greetings.length ?? 0) === 0"
+          class="text-xs text-gray-600 py-1"
+        >
+          No group-only greetings.
+        </div>
+        <div ref="groupGreetingListRef" class="relative">
+          <TransitionGroup name="list">
+            <div
+              v-for="(greeting, index) in store.cardJson?.data.group_only_greetings ?? []"
+              :key="groupGreetingKeys[index]"
+            >
+              <div class="border border-gray-700 rounded p-2">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-1">
+                    <span
+                      class="drag-handle cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 select-none"
+                      >⠿</span
+                    >
+                    <span class="text-xs text-gray-500">Group greeting {{ index + 1 }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      class="text-xs text-gray-500 hover:text-red-400"
+                      @click="removeGroupGreeting(index)"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+                <MarkdownField
+                  :model-value="greeting"
+                  @update:model-value="(v: string) => { if (store.cardJson) store.cardJson.data.group_only_greetings[index] = v; }"
+                />
+              </div>
+              <div class="flex items-center gap-2 pt-2 pb-2">
+                <div class="flex-1 h-px bg-gray-800 ml-8"></div>
+                <button
+                  class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-full"
+                  @click="addGroupGreeting(index + 1)"
+                >
+                  +
+                </button>
+                <div class="flex-1 h-px bg-gray-800 mr-8"></div>
+              </div>
+            </div>
+          </TransitionGroup>
+        </div>
+      </div>
+    </details>
   </CollapsibleSection>
 </template>
 

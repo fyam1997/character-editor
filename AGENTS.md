@@ -6,7 +6,7 @@
 
 A tool for creating and editing Character Card V2 documents.
 
-Spec: `spec_v2.md`. ADRs: `docs/adr/`. Plans: `docs/plans/`.
+Spec: `spec_v3.md`. ADRs: `docs/adr/`. Plans: `docs/plans/`.
 
 Local TODO: `.todo.md` — cross branch doc for tracking and planning. **DO NOT commit `.todo.md`**.
 

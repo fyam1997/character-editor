@@ -8,6 +8,14 @@ const store = useEditorStore();
 const rawTags = ref('');
 const showPreview = ref(false);
 
+function isUrl(str: string): boolean {
+  return str.startsWith('http://') || str.startsWith('https://');
+}
+
+function openUrl(url: string) {
+  window.open(url, '_blank');
+}
+
 const previewUrl = computed(() => {
   if (!store.pngBlob) return '';
   return URL.createObjectURL(store.pngBlob);
@@ -85,6 +93,14 @@ function pickImage() {
           </div>
         </div>
         <div>
+          <label class="text-xs text-gray-400 block mb-1">Nickname</label>
+          <input
+            v-model="store.cardJson.data.nickname"
+            placeholder="Optional"
+            class="w-full px-2 py-1.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
+          />
+        </div>
+        <div>
           <label class="text-xs text-gray-400 block mb-1">Tags (comma-separated)</label>
           <input
             v-model="rawTags"
@@ -97,6 +113,34 @@ function pickImage() {
         <div>
           <label class="text-xs text-gray-400 block mb-1">Creator Notes</label>
           <MarkdownField v-model="store.cardJson.data.creator_notes" />
+        </div>
+        <div v-if="store.cardJson?.data.source?.length">
+          <label class="text-xs text-gray-400 block mb-1">Source</label>
+          <div class="flex flex-wrap gap-1">
+            <span
+              v-for="(item, i) in store.cardJson.data.source"
+              :key="i"
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] bg-gray-800 border border-gray-700 rounded cursor-pointer hover:bg-gray-700"
+              :class="{ 'text-blue-400 underline': isUrl(item) }"
+              @click="isUrl(item) && openUrl(item)"
+            >
+              {{ item }}
+            </span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 text-xs pt-1">
+          <div>
+            <label class="text-gray-400 block mb-0.5">Created</label>
+            <div class="px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-gray-300">
+              {{ store.cardJson.data.creation_date ? new Date(store.cardJson.data.creation_date * 1000).toLocaleString() : 'Not set' }}
+            </div>
+          </div>
+          <div>
+            <label class="text-gray-400 block mb-0.5">Modified</label>
+            <div class="px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-gray-300">
+              {{ store.cardJson.data.modification_date ? new Date(store.cardJson.data.modification_date * 1000).toLocaleString() : 'Not set' }}
+            </div>
+          </div>
         </div>
       </div>
     </div>

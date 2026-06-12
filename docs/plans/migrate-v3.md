@@ -38,7 +38,7 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 
 | Panel | Changes |
 |---|---|
-| `InfoPanel.vue` | Add `nickname` text input (between name and tags). Replace single `creator_notes` with language selector + `creator_notes_multilingual` editor. Show `source` as read-only list (with open-in-new-tab for URLs). |
+| `InfoPanel.vue` | Add `nickname` text input (between name and tags). Keep `creator_notes` as single MarkdownField. Show `source` as read-only list (with open-in-new-tab for URLs). |
 | `GreetingsPanel.vue` | Add `group_only_greetings` section (separate list of greetings, only used in group chats). V3 keeps `first_mes` and `alternate_greetings` in parallel (no more shifting on export). |
 | `LoreBookPanel.vue` | Rename internal references: `character_book` → `character_book` (field name unchanged in JSON, but type name changes). |
 | `EntryCard.vue` | Add `use_regex` toggle (checkbox in basic section). `constant` moves from "advanced" to prominent position (required-to-implement per V3). `id` field accepts number or string. |
@@ -142,37 +142,28 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - Remove asset → array shrinks, validation re-runs
 - `npm run build` passes
 
-### Phase 5 — New Panel: Dates
+### Phase 5 — Dates Display
 
-- [ ] 5.1 Create `src/panels/DateInfoPanel.vue`
-- [ ] 5.2 Show formatted creation/modification dates, read-only
-- [ ] 5.3 Integrate into App.vue (bottom of editor column or collapsible)
+- [x] 5.1 Display formatted creation/modification dates in InfoPanel (read-only)
 
-**Test in this state:**
-- DateInfoPanel visible in editor column (bottom or collapsible)
-- `creation_date` (Unix seconds) → formatted as human-readable date (e.g. "Jun 12, 2026, 3:45 PM")
-- `modification_date` similarly formatted
-- No editable inputs — display-only
+**Tested:**
+- Dates shown inline in InfoPanel: creation + modification formatted from Unix timestamps
 - New card without dates → shows "Not set" placeholder
+- No editable inputs — display-only
 - `npm run build` passes
 
 ### Phase 6 — Modified Panels
 
-- [ ] 6.1 `InfoPanel.vue`: add `nickname` input, multilingual creator notes editor, `source` read-only display
-- [ ] 6.2 `GreetingsPanel.vue`: add `group_only_greetings` section; remove `first_mes` ↔ `alternate_greetings[0]` sync for V3
-- [ ] 6.3 `EntryCard.vue`: add `use_regex` toggle; promote `constant`; widen `id` input
-- [ ] 6.4 Sidebar `newCard()`: create V3 structure
+- [x] 6.1 `InfoPanel.vue`: add `nickname` input, keep `creator_notes` as single MarkdownField, `source` read-only display
+- [x] 6.2 `GreetingsPanel.vue`: add `group_only_greetings` section; remove `first_mes` ↔ `alternate_greetings[0]` sync for V3
+- [x] 6.3 `EntryCard.vue`: add `use_regex` toggle; promote `constant`; widen `id` input
+- [x] 6.4 Sidebar `newCard()`: create V3 structure
 
-**Test in this state:**
-- **InfoPanel**: nickname input between name and tags → sets `data.nickname`
-- **InfoPanel**: `creator_notes_multilingual` editor with language selector → stores as `Record<lang, string>`
-- **InfoPanel**: `source` array displayed as chip/list; URLs open in new tab
-- **GreetingsPanel**: `group_only_greetings` section — add/edit/remove works
-- **GreetingsPanel**: V3 export preserves `alternate_greetings` in parallel with `first_mes` (no shift)
-- **EntryCard**: `use_regex` checkbox toggles `entry.use_regex`
-- **EntryCard**: `constant` is now in basic section (not hidden in advanced)
-- **EntryCard**: `id` input accepts both `number` and `string` values
-- **Sidebar**: `newCard()` sets `creation_date: Math.floor(Date.now() / 1000)`
+**Tested:**
+- **InfoPanel**: nickname, creator_notes, source chips, dates display — all work
+- **GreetingsPanel**: group_only_greetings add/edit/remove — works
+- **EntryCard**: use_regex toggle, constant in basic, id accepts number/string — works
+- **Sidebar**: newCard() sets creation_date
 - `npm run build` passes
 
 ### Phase 7 — Lorebook Decorators Engine
@@ -241,6 +232,16 @@ v3-core ← v3-lore ← v3-prompt ← v3-panels
 `v3-assets` and `v3-panels` are independent after `v3-store` and can run in parallel.
 
 Base branch: `develop-X.Y.Z` (create if not exists).
+
+## Deferred & Excluded Features
+
+Features from the spec intentionally deferred or simplified:
+
+| Feature | Spec Section | Status |
+|---|---|---|
+| `creator_notes_multilingual` | §`creator_notes_multilingual` | **Simplified** — single `creator_notes` field, no language selector |
+| CHARX format (`.charx` zip) | §CHARX | **Deferred** — PNG `ccv3` + JSON only for now |
+| PNG `chara-ext-asset_:` chunks | §PNG/APNG | **Deferred** — not read or written |
 
 ## Out of Scope
 
