@@ -6,6 +6,17 @@
 - Debug checkbox "Reopen Last Session" — when enabled, auto-selects the last
   active chat session for the current card on entry
 
+### Changed
+- MarkdownField: clicking the rendered preview places the cursor at the clicked
+  line/column instead of jumping to the end of text
+- MarkdownField: undo/redo history is now preserved across editing sessions for
+  each field (textarea kept alive with `v-show` instead of `v-if`/`v-else`)
+
+### Fixed
+- MarkdownField: `startEdit` now uses DOM tree walker to correctly map clicks in
+  rendered preview to source cursor position, handling headings, lists
+  (including nested/indented), code blocks, and blockquotes
+
 ## [0.3.0] — 2026-06-11
 
 ### Added

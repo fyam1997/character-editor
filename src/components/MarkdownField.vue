@@ -12,8 +12,9 @@ const emit = defineEmits<{
 }>()
 
 const editing = ref(false)
-const buffer = ref('')
 const textarea = ref<HTMLTextAreaElement | null>(null)
+const contentEl = ref<HTMLElement | null>(null)
+const initialized = ref(false)
 
 function dialogueHtml(text: string): string {
   return text.replace(
@@ -28,15 +29,119 @@ const rendered = computed(() => {
   return marked(text, { breaks: true }) as string
 })
 
-function startEdit() {
+function startEdit(event: MouseEvent) {
+  let clickPos = -1
+
+  if (contentEl.value) {
+    try {
+      let range: Range | null = document.caretRangeFromPoint(event.clientX, event.clientY)
+      if (!range) {
+        const pos = document.caretPositionFromPoint(event.clientX, event.clientY)
+        if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); range.collapse(true) }
+      }
+      if (range && contentEl.value.contains(range.startContainer)) {
+        const blockTags = new Set(['P','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE','DIV','HR','TD','TH'])
+        const target = range.startContainer
+        const targetOff = range.startOffset
+
+        let row = 0
+        let col = 0
+        let inNewBlock = true
+        let afterBr = false
+
+        const walker = document.createTreeWalker(contentEl.value, NodeFilter.SHOW_ALL)
+        let node: Node | null = walker.currentNode
+        while (node) {
+          if (node === contentEl.value) { node = walker.nextNode(); continue }
+          const isTarget = node === target
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const tag = (node as Element).tagName
+            if (tag === 'BR') { row++; col = 0; afterBr = true }
+            else if (blockTags.has(tag)) { inNewBlock = true; col = 0; afterBr = false }
+          }
+          if (node.nodeType === Node.TEXT_NODE) {
+            const text = (node as Text).data
+            if (text.trim() === '') { node = walker.nextNode(); continue }
+            const parts = text.split('\n')
+            let effectiveLines = parts.length
+            if (effectiveLines > 1 && parts[effectiveLines - 1] === '') effectiveLines--
+
+            if (isTarget) {
+              let remaining = targetOff
+              let lineIdx = 0
+              while (lineIdx < effectiveLines && remaining > parts[lineIdx].length) {
+                remaining -= parts[lineIdx].length + 1
+                lineIdx++
+              }
+              row += lineIdx
+              col = remaining
+            } else if (inNewBlock && effectiveLines > 0 && parts.slice(0, effectiveLines).some(p => p.length > 0)) {
+              row += effectiveLines
+              col = parts[effectiveLines - 1].length
+              inNewBlock = false; afterBr = false
+            } else if (afterBr) {
+              row += effectiveLines - 1
+              col = parts[effectiveLines - 1].length
+              afterBr = false
+            } else if (effectiveLines > 1) {
+              row += effectiveLines - 1
+              col = parts[effectiveLines - 1].length
+            } else {
+              col += text.length
+            }
+          }
+          if (isTarget) break
+          node = walker.nextNode()
+        }
+
+        const sourceLines = props.modelValue.split('\n')
+        const visibleToSource: number[] = []
+        for (let i = 0; i < sourceLines.length; i++) {
+          const l = sourceLines[i]
+          if (/^```/.test(l) || /^\s*$/.test(l)) continue
+          if (/^(?:[-*_]\s*){3,}$/.test(l.trim())) continue
+          visibleToSource.push(i)
+        }
+        const targetRow = visibleToSource[row] ?? Math.min(row, sourceLines.length - 1)
+        const sourceLine = sourceLines[targetRow] || ''
+
+        const prefixMatch = sourceLine.match(/^(\s*#{1,6}\s+|\s*[-*]\s+|\s*\d+\.\s+|\s*>\s?)/)
+        const prefixLen = prefixMatch ? prefixMatch[0].length : 0
+        const adjustedCol = col + prefixLen
+
+        let pos = 0
+        for (let i = 0; i < targetRow; i++) {
+          pos += sourceLines[i].length + 1
+        }
+        pos += Math.min(adjustedCol, sourceLine.length)
+        clickPos = Math.min(pos, props.modelValue.length)
+      }
+    } catch { /* fall through */ }
+  }
+
   editing.value = true
-  buffer.value = props.modelValue
-  nextTick(() => textarea.value?.focus())
+  nextTick(() => {
+    const el = textarea.value
+    if (!el) return
+    if (!initialized.value) {
+      el.value = props.modelValue
+      initialized.value = true
+    }
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 'px'
+    el.focus()
+    if (clickPos >= 0) {
+      el.setSelectionRange(clickPos, clickPos)
+    }
+  })
 }
 
 function commit() {
   editing.value = false
-  emit('update:modelValue', buffer.value)
+  const el = textarea.value
+  if (el) {
+    emit('update:modelValue', el.value)
+  }
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -50,7 +155,7 @@ function onKeydown(e: KeyboardEvent) {
   <div v-if="readonly" class="markdown-preview" v-html="rendered" />
   <div v-else>
     <div
-      v-if="!editing"
+      v-show="!editing"
       :class="[
         'min-h-[2em] px-2 py-1.5 text-xs bg-gray-800 rounded text-gray-200 cursor-text markdown-preview',
         !modelValue ? 'border border-gray-600' : ''
@@ -58,13 +163,11 @@ function onKeydown(e: KeyboardEvent) {
       @click="startEdit"
     >
       <div v-if="!modelValue" class="text-gray-500">Click to edit...</div>
-      <div v-else v-html="rendered" />
+      <div v-else ref="contentEl" v-html="rendered" />
     </div>
     <textarea
-      v-else
+      v-show="editing"
       ref="textarea"
-      :value="buffer"
-      @input="buffer = ($event.target as HTMLTextAreaElement).value"
       @blur="commit"
       @keydown="onKeydown"
       v-grow
