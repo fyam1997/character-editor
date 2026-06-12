@@ -3,9 +3,13 @@
 ## [0.3.0] — 2026-06-12
 
 ### Added
-- `InfoPanel.vue`: `nickname` field, multilingual `creator_notes_multilingual` editor with language selector, read-only `source` list, date display
+- `InfoPanel.vue`: `nickname` field, `source` read-only chip list, inline creation/modification date display
 - `GreetingsPanel.vue`: collapsible `group_only_greetings` subsection
 - `EntryCard.vue`: `use_regex` toggle; `constant` promoted from advanced to basic section
+
+### Removed
+- Multilingual `creator_notes_multilingual` — simplified back to single `creator_notes` MarkdownField
+- Separate `DateInfoPanel.vue` — dates moved inline into InfoPanel
 
 ### Changed
 - Migrate core types to V3: `CharacterCardV3`, `Lorebook`, `LorebookEntry`, `Asset`

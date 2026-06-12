@@ -142,37 +142,28 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - Remove asset → array shrinks, validation re-runs
 - `npm run build` passes
 
-### Phase 5 — New Panel: Dates
+### Phase 5 — Dates Display
 
-- [ ] 5.1 Create `src/panels/DateInfoPanel.vue`
-- [ ] 5.2 Show formatted creation/modification dates, read-only
-- [ ] 5.3 Integrate into App.vue (bottom of editor column or collapsible)
+- [x] 5.1 Display formatted creation/modification dates in InfoPanel (read-only)
 
-**Test in this state:**
-- DateInfoPanel visible in editor column (bottom or collapsible)
-- `creation_date` (Unix seconds) → formatted as human-readable date (e.g. "Jun 12, 2026, 3:45 PM")
-- `modification_date` similarly formatted
-- No editable inputs — display-only
+**Tested:**
+- Dates shown inline in InfoPanel: creation + modification formatted from Unix timestamps
 - New card without dates → shows "Not set" placeholder
+- No editable inputs — display-only
 - `npm run build` passes
 
 ### Phase 6 — Modified Panels
 
-- [ ] 6.1 `InfoPanel.vue`: add `nickname` input, keep `creator_notes` as single MarkdownField, `source` read-only display
-- [ ] 6.2 `GreetingsPanel.vue`: add `group_only_greetings` section; remove `first_mes` ↔ `alternate_greetings[0]` sync for V3
-- [ ] 6.3 `EntryCard.vue`: add `use_regex` toggle; promote `constant`; widen `id` input
-- [ ] 6.4 Sidebar `newCard()`: create V3 structure
+- [x] 6.1 `InfoPanel.vue`: add `nickname` input, keep `creator_notes` as single MarkdownField, `source` read-only display
+- [x] 6.2 `GreetingsPanel.vue`: add `group_only_greetings` section; remove `first_mes` ↔ `alternate_greetings[0]` sync for V3
+- [x] 6.3 `EntryCard.vue`: add `use_regex` toggle; promote `constant`; widen `id` input
+- [x] 6.4 Sidebar `newCard()`: create V3 structure
 
-**Test in this state:**
-- **InfoPanel**: nickname input between name and tags → sets `data.nickname`
-- **InfoPanel**: `creator_notes` rendered as single MarkdownField
-- **InfoPanel**: `source` array displayed as chip/list; URLs open in new tab
-- **GreetingsPanel**: `group_only_greetings` section — add/edit/remove works
-- **GreetingsPanel**: V3 export preserves `alternate_greetings` in parallel with `first_mes` (no shift)
-- **EntryCard**: `use_regex` checkbox toggles `entry.use_regex`
-- **EntryCard**: `constant` is now in basic section (not hidden in advanced)
-- **EntryCard**: `id` input accepts both `number` and `string` values
-- **Sidebar**: `newCard()` sets `creation_date: Math.floor(Date.now() / 1000)`
+**Tested:**
+- **InfoPanel**: nickname, creator_notes, source chips, dates display — all work
+- **GreetingsPanel**: group_only_greetings add/edit/remove — works
+- **EntryCard**: use_regex toggle, constant in basic, id accepts number/string — works
+- **Sidebar**: newCard() sets creation_date
 - `npm run build` passes
 
 ### Phase 7 — Lorebook Decorators Engine
