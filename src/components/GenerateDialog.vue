@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useEditorStore } from '../stores/editor';
-import { streamChat, mockStreamText } from '../utils/api';
+import { mockStreamText, streamChat } from '../utils/api';
 import type { ChatMessage } from '../types';
+import type { GenerateField, GenerateMode } from '../utils/generate';
 import {
   assembleGeneratePrompt,
-  getMatchingLoreIndices,
+  clearPromptMemory,
   getDefaultPrompt,
+  getMatchingLoreIndices,
   loadPromptMemory,
   savePromptMemory,
-  clearPromptMemory,
 } from '../utils/generate';
-import type { GenerateField, GenerateMode } from '../utils/generate';
 import MarkdownField from './MarkdownField.vue';
-import InspectDialog from './InspectDialog.vue';
+import { useDialogStackStore } from '../stores/dialog-stack';
 
 const props = defineProps<{
   visible: boolean;
@@ -53,11 +53,13 @@ const greetingSelections = ref<boolean[]>([]);
 const loreSelections = ref<boolean[]>([]);
 const userPrompt = ref('');
 const theme = ref('');
-const inspectPayload = ref('');
+
 const resultText = ref('');
 const generating = ref(false);
 const error = ref('');
 const done = ref(false);
+
+const stack = useDialogStackStore();
 
 const greetings = computed(() => store.cardJson?.data.alternate_greetings ?? []);
 const loreEntries = computed(() => store.cardJson?.data.character_book?.entries ?? []);
@@ -173,14 +175,19 @@ watch(userPrompt, val => {
   savePromptMemory(props.field, mode.value, val);
 });
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && props.visible && !generating.value && !inspectPayload.value) {
-    handleClose();
-  }
-}
-
-onMounted(() => window.addEventListener('keydown', onKeydown));
-onUnmounted(() => window.removeEventListener('keydown', onKeydown));
+watch(
+  () => props.visible,
+  v => {
+    if (v) {
+      stack.show('generateDialog', {
+        onClose: () => { if (!generating.value) handleClose(); },
+      });
+    } else {
+      stack.hide('generateDialog');
+    }
+  },
+  { immediate: true },
+);
 
 function handleReset() {
   let keys: string | undefined;
@@ -227,11 +234,14 @@ async function handleGenerate() {
   );
 
   if (store.inspectRequest) {
-    inspectPayload.value = JSON.stringify(
-      { model: store.apiConfig.model, messages, stream: true },
-      null,
-      2,
-    );
+    stack.show('inspect', {
+      payload: JSON.stringify(
+        { model: store.apiConfig.model, messages, stream: true },
+        null,
+        2,
+      ),
+      onConfirm: handleInspectConfirm,
+    });
     generating.value = false;
     return;
   }
@@ -289,7 +299,6 @@ async function handleInspectConfirm(payload: string) {
     const parsed = JSON.parse(payload);
     const messages = parsed.messages as ChatMessage[];
     if (!Array.isArray(messages)) return;
-    inspectPayload.value = '';
     generating.value = true;
     error.value = '';
     resultText.value = '';
@@ -468,9 +477,26 @@ function handleClose() {
             {{ generating ? 'Generating...' : 'Generate' }}
           </button>
 
-          <div v-if="resultText" class="relative">
+          <div v-if="generating || resultText" class="relative">
             <label class="text-xs text-gray-400 block mb-2">Result</label>
-            <MarkdownField :model-value="resultText" :disabled="generating" />
+            <div v-if="generating && !resultText" class="flex items-center gap-1 py-2">
+              <span class="text-gray-400 animate-pulse">Thinking</span>
+              <span class="flex gap-0.5">
+                <span
+                  class="w-1 h-1 bg-gray-500 rounded-full animate-dot"
+                  style="animation-delay: 0ms"
+                ></span>
+                <span
+                  class="w-1 h-1 bg-gray-500 rounded-full animate-dot"
+                  style="animation-delay: 150ms"
+                ></span>
+                <span
+                  class="w-1 h-1 bg-gray-500 rounded-full animate-dot"
+                  style="animation-delay: 300ms"
+                ></span>
+              </span>
+            </div>
+            <MarkdownField v-else :model-value="resultText" :disabled="generating" />
           </div>
 
           <div v-if="error" class="text-xs text-red-400 bg-red-900/30 px-3 py-2 rounded">
@@ -497,10 +523,23 @@ function handleClose() {
       </div>
     </div>
   </Teleport>
-  <InspectDialog
-    :visible="!!inspectPayload"
-    :payload="inspectPayload"
-    @close="inspectPayload = ''"
-    @confirm="handleInspectConfirm"
-  />
 </template>
+
+<style scoped>
+@keyframes dot-bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.3);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-dot {
+  animation: dot-bounce 1.4s ease-in-out infinite both;
+}
+</style>

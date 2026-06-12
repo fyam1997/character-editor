@@ -135,12 +135,18 @@ export function assembleGeneratePrompt(
 
   const styleLine = theme?.trim() ? ` Write in the following style/theme: ${theme.trim()}.` : '';
   const outputInstruction =
-    ' Respond with ONLY the raw content — no explanations, no meta-commentary, no markdown wrappers, no labels.';
+    'Respond with ONLY the raw content — no explanations, no meta-commentary, no markdown wrappers, no labels.';
 
   msgs.push({
     role: 'system',
-    content: replacePlaceholders(mainContent, charName) + styleLine + outputInstruction,
+    content: replacePlaceholders(mainContent, charName),
   });
+
+  if (styleLine) {
+    msgs.push({ role: 'system', content: styleLine });
+  }
+
+  msgs.push({ role: 'system', content: outputInstruction });
 
   const auxiliaryPrompt = systemPrompts?.auxiliaryPrompt;
   if (auxiliaryPrompt) {

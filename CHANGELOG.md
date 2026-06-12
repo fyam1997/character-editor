@@ -1,16 +1,20 @@
 # Changelog
 
-## [0.4.0] — 2026-06-12
+## [0.3.0] — 2026-06-12
 
 ### Added
 - Debug checkbox "Reopen Last Session" — when enabled, auto-selects the last
   active chat session for the current card on entry
+- Generate dialog: loading indicator (animated dots) in result area while
+  generating, matching the chat room style
 
 ### Changed
 - MarkdownField: clicking the rendered preview places the cursor at the clicked
   line/column instead of jumping to the end of text
 - MarkdownField: undo/redo history is now preserved across editing sessions for
   each field (textarea kept alive with `v-show` instead of `v-if`/`v-else`)
+- Generate dialog: `theme` and `outputInstruction` are now standalone system
+  messages instead of being concatenated into the main prompt
 
 ### Fixed
 - MarkdownField: `startEdit` now uses DOM tree walker to correctly map clicks in
@@ -19,11 +23,20 @@
 - MarkdownField: clicks past the end of a rendered line now place the cursor at
   the line end instead of the line start (handle `caretRangeFromPoint` offset 0
   quirk via bounding rect measurement)
+- Escape in inspect dialog now only closes the inspect dialog, not parent
+- Escape works regardless of focus state (document-level listener)
 
 ### Refactored
 - MarkdownField: extracted repeated inline markdown token scanning into
   data-driven `TOKEN_PATTERNS` + `scanToken` helper; extracted
   `closestTextNodeByY` helper; net -62 lines, zero functional change
+- Inspect dialog: moved from inline usage in GenerateDialog/ChatRoom to
+  centralized DialogStack Pinia store + Dialogs.vue component
+- Dialog stack: Pinia store (`dialogStack`) manages visibility stack
+  and centralized Escape keydown handler; only the topmost dialog closes
+- GenerateDialog now also uses the same store for Escape handling
+- Removed old standalone `utils/dialog-stack.ts` and `use-dialog-escape.ts`
+- InspectDialog is now a pure presentational component with no stack logic
 
 ## [0.3.0] — 2026-06-11
 
@@ -32,6 +45,12 @@
   JSON modal for bulk editing, and proper null/undefined handling
 - Inspect dialog now editable with a textarea and Confirm button — edit the
   request payload and confirm to call the API with your changes
+- Generate dialog: loading indicator (animated dots) in result area while
+  generating, matching the chat room style
+
+### Changed
+- Generate dialog: `theme` and `outputInstruction` are now standalone system
+  messages instead of being concatenated into the main prompt
 
 ### Fixed
 - Inspect dialog Confirm now respects the Mock Response toggle, routing to mock
