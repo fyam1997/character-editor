@@ -48,6 +48,11 @@ export const useEditorStore = defineStore('editor', () => {
     localStorage.setItem('systemPrompts', JSON.stringify(v))
   }, { deep: true })
 
+  const reopenLastSession = ref(localStorage.getItem('reopenLastSession') === 'true')
+  watch(reopenLastSession, (v) => {
+    localStorage.setItem('reopenLastSession', String(v))
+  })
+
   const inspectRequest = ref(localStorage.getItem('inspectRequest') === 'true')
   watch(inspectRequest, (v) => {
     localStorage.setItem('inspectRequest', String(v))
@@ -119,6 +124,16 @@ export const useEditorStore = defineStore('editor', () => {
     cardJson.value = json
     const record = await db.cards.get(id)
     pngBlob.value = record?.pngBlob
+    localStorage.setItem('lastActiveCardId', String(id))
+  }
+
+  function getLastActiveCardId(): number | null {
+    try {
+      const v = localStorage.getItem('lastActiveCardId')
+      return v ? Number(v) : null
+    } catch {
+      return null
+    }
   }
 
   function clearActiveCard() {
@@ -196,11 +211,27 @@ export const useEditorStore = defineStore('editor', () => {
       ],
     })
     await loadSessionsForCard()
-    activeSessionId.value = id ?? null
+    if (id != null) {
+      await selectSession(id)
+    }
   }
 
   async function selectSession(id: number) {
     activeSessionId.value = id
+    if (activeCardId.value != null) {
+      const map = JSON.parse(localStorage.getItem('lastSessionByCard') || '{}')
+      map[activeCardId.value] = id
+      localStorage.setItem('lastSessionByCard', JSON.stringify(map))
+    }
+  }
+
+  function getLastSessionId(cardId: number): number | null {
+    try {
+      const map = JSON.parse(localStorage.getItem('lastSessionByCard') || '{}')
+      return map[cardId] ?? null
+    } catch {
+      return null
+    }
   }
 
   async function deleteSession(id: number) {
@@ -253,6 +284,9 @@ export const useEditorStore = defineStore('editor', () => {
     inspectRequest,
     mockInspect,
     mockInspectText,
+    reopenLastSession,
+    getLastSessionId,
+    getLastActiveCardId,
     isActive,
     sessions,
     activeSessionId,

@@ -1,3 +1,7 @@
+**You should commit your changes after finishing task**
+**You should commit your changes after finishing task**
+**You should commit your changes after finishing task**
+
 # Character Card Editor
 
 A tool for creating and editing Character Card V2 documents.
@@ -25,10 +29,6 @@ Local TODO: `.todo.md`
 - TailwindCSS, no component library
 
 ## Commit & Changelog
-
-**You should commit your changes after finishing task**
-**You should commit your changes after finishing task**
-**You should commit your changes after finishing task**
 
 - Each commit should have a single purpose, avoid making a commit too large
 - Commit messages: `type:` prefix — `feat:`, `fix:`, `refactor:`, `chore:`, `style:`, `docs:`

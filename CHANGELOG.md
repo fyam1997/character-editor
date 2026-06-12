@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0] — 2026-06-12
+
+### Added
+- Debug checkbox "Reopen Last Session" — when enabled, auto-selects the last
+  active chat session for the current card on entry
+
 ## [0.3.0] — 2026-06-11
 
 ### Added
