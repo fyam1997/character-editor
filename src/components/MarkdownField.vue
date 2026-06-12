@@ -151,6 +151,53 @@ function visibleToSourceRow(row: number): number {
   return srcRow
 }
 
+interface ScanResult { srcIdx: number; rendIdx: number; done: boolean }
+
+const TOKEN_PATTERNS: Array<{
+  test: (s: string, i: number) => boolean
+  openLen: number
+  close: string
+  suffix?: (src: string, closeAt: number) => number | null
+}> = [
+  { test: (s, i) => s[i] === '*' && s[i + 1] === '*', openLen: 2, close: '**' },
+  { test: (s, i) => s[i] === '*' && s[i + 1] !== '*', openLen: 1, close: '*' },
+  { test: (s, i) => s[i] === '_' && s[i + 1] === '_', openLen: 2, close: '__' },
+  { test: (s, i) => s[i] === '_' && s[i + 1] !== '_', openLen: 1, close: '_' },
+  { test: (s, i) => s[i] === '`', openLen: 1, close: '`' },
+  { test: (s, i) => s[i] === '~' && s[i + 1] === '~', openLen: 2, close: '~~' },
+  {
+    test: (s, i) => s[i] === '!' && s[i + 1] === '[', openLen: 2, close: ']',
+    suffix: (src, closeAt) => { const p = src.indexOf(')', closeAt); return p !== -1 ? p + 1 : null },
+  },
+  {
+    test: (s, i) => s[i] === '[', openLen: 1, close: ']',
+    suffix: (src, closeAt) => { const p = src.indexOf(')', closeAt); return p !== -1 ? p + 1 : null },
+  },
+]
+
+function scanToken(
+  sourceLine: string,
+  srcIdx: number,
+  rendIdx: number,
+  col: number,
+  openLen: number,
+  closeStr: string,
+  suffix?: (src: string, closeAt: number) => number | null,
+): ScanResult | null {
+  const close = sourceLine.indexOf(closeStr, srcIdx + openLen)
+  if (close === -1) return null
+  srcIdx += openLen
+  const contentLen = close - srcIdx
+  const take = Math.min(contentLen, col - rendIdx)
+  if (take > 0) { srcIdx += take; rendIdx += take }
+  const suffixEnd = suffix ? suffix(sourceLine, close) : null
+  if (rendIdx < col) {
+    return { srcIdx: suffixEnd ?? close + closeStr.length, rendIdx, done: false }
+  }
+  if (take === contentLen) srcIdx = suffixEnd ?? close + closeStr.length
+  return { srcIdx, rendIdx, done: true }
+}
+
 function sourceOffset(row: number, col: number): number {
   const sourceLines = props.modelValue.split('\n')
   const sourceLine = sourceLines[row] || ''
@@ -162,134 +209,19 @@ function sourceOffset(row: number, col: number): number {
   if (skipPrefix) srcIdx = skipPrefix[0].length
 
   while (srcIdx < sourceLine.length && rendIdx < col) {
-    const ch = sourceLine[srcIdx]
-
-    if (ch === '*' && sourceLine[srcIdx + 1] === '*') {
-      const close = sourceLine.indexOf('**', srcIdx + 2)
-      if (close !== -1) {
-        srcIdx += 2
-        const contentLen = close - srcIdx
-        const take = Math.min(contentLen, col - rendIdx)
-        if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx < col) { srcIdx = close + 2; continue }
-        if (take === contentLen) srcIdx = close + 2
+    let result: ScanResult | null = null
+    for (const pat of TOKEN_PATTERNS) {
+      if (pat.test(sourceLine, srcIdx)) {
+        result = scanToken(sourceLine, srcIdx, rendIdx, col, pat.openLen, pat.close, pat.suffix)
         break
       }
     }
-
-    if (ch === '*' && sourceLine[srcIdx + 1] !== '*') {
-      const close = sourceLine.indexOf('*', srcIdx + 1)
-      if (close !== -1) {
-        srcIdx++
-        const contentLen = close - srcIdx
-        const take = Math.min(contentLen, col - rendIdx)
-        if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx < col) { srcIdx = close + 1; continue }
-        if (take === contentLen) srcIdx = close + 1
-        break
-      }
+    if (result) {
+      srcIdx = result.srcIdx
+      rendIdx = result.rendIdx
+      if (result.done) break
+      continue
     }
-
-    if (ch === '_' && sourceLine[srcIdx + 1] === '_') {
-      const close = sourceLine.indexOf('__', srcIdx + 2)
-      if (close !== -1) {
-        srcIdx += 2
-        const contentLen = close - srcIdx
-        const take = Math.min(contentLen, col - rendIdx)
-        if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx < col) { srcIdx = close + 2; continue }
-        if (take === contentLen) srcIdx = close + 2
-        break
-      }
-    }
-
-    if (ch === '_' && sourceLine[srcIdx + 1] !== '_') {
-      const close = sourceLine.indexOf('_', srcIdx + 1)
-      if (close !== -1) {
-        srcIdx++
-        const contentLen = close - srcIdx
-        const take = Math.min(contentLen, col - rendIdx)
-        if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx < col) { srcIdx = close + 1; continue }
-        if (take === contentLen) srcIdx = close + 1
-        break
-      }
-    }
-
-    if (ch === '`') {
-      const close = sourceLine.indexOf('`', srcIdx + 1)
-      if (close !== -1) {
-        srcIdx++
-        const contentLen = close - srcIdx
-        const take = Math.min(contentLen, col - rendIdx)
-        if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx < col) { srcIdx = close + 1; continue }
-        if (take === contentLen) srcIdx = close + 1
-        break
-      }
-    }
-
-    if (ch === '~' && sourceLine[srcIdx + 1] === '~') {
-      const close = sourceLine.indexOf('~~', srcIdx + 2)
-      if (close !== -1) {
-        srcIdx += 2
-        const contentLen = close - srcIdx
-        const take = Math.min(contentLen, col - rendIdx)
-        if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx < col) { srcIdx = close + 2; continue }
-        if (take === contentLen) srcIdx = close + 2
-        break
-      }
-    }
-
-    if (ch === '!' && sourceLine[srcIdx + 1] === '[') {
-      const closeBracket = sourceLine.indexOf(']', srcIdx + 2)
-      if (closeBracket !== -1) {
-        srcIdx += 2
-        const contentLen = closeBracket - srcIdx
-        const take = Math.min(contentLen, col - rendIdx)
-        if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx < col || take < contentLen) {
-          if (rendIdx < col) {
-            const closeParen = sourceLine.indexOf(')', closeBracket)
-            if (closeParen !== -1) { srcIdx = closeParen + 1; continue }
-          }
-          if (take === contentLen) {
-            const closeParen = sourceLine.indexOf(')', closeBracket)
-            if (closeParen !== -1) srcIdx = closeParen + 1
-          }
-          break
-        }
-        const closeParen = sourceLine.indexOf(')', closeBracket)
-        if (closeParen !== -1) srcIdx = closeParen + 1
-        break
-      }
-    }
-
-    if (ch === '[') {
-      const closeBracket = sourceLine.indexOf(']', srcIdx + 1)
-      if (closeBracket !== -1) {
-        srcIdx++
-        const contentLen = closeBracket - srcIdx
-        const take = Math.min(contentLen, col - rendIdx)
-        if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx < col || take < contentLen) {
-          if (rendIdx < col) {
-            const closeParen = sourceLine.indexOf(')', closeBracket)
-            if (closeParen !== -1) { srcIdx = closeParen + 1; continue }
-          }
-          if (take === contentLen) {
-            const closeParen = sourceLine.indexOf(')', closeBracket)
-            if (closeParen !== -1) srcIdx = closeParen + 1
-          }
-          break
-        }
-        const closeParen = sourceLine.indexOf(')', closeBracket)
-        if (closeParen !== -1) srcIdx = closeParen + 1
-        break
-      }
-    }
-
     srcIdx++
     rendIdx++
   }
@@ -306,6 +238,25 @@ function sourceOffset(row: number, col: number): number {
   return result
 }
 
+function closestTextNodeByY(container: HTMLElement, y: number): Node | null {
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+  let bestNode: Node | null = null
+  let bestDist = Infinity
+  let node: Node | null = walker.firstChild()
+  while (node) {
+    const r = document.createRange()
+    r.setStart(node, 0)
+    r.setEnd(node, Math.min(1, (node as Text).length))
+    const rect = r.getBoundingClientRect()
+    if (rect) {
+      const dist = Math.abs(y - rect.top)
+      if (dist < bestDist) { bestDist = dist; bestNode = node }
+    }
+    node = walker.nextNode()
+  }
+  return bestNode
+}
+
 function startEdit(event: MouseEvent) {
   let clickPos = -1
 
@@ -317,33 +268,20 @@ function startEdit(event: MouseEvent) {
         let targetOff = range.startOffset
 
         if (target.nodeType === Node.ELEMENT_NODE) {
-          const textWalker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT)
+          const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT)
           let lastText: Node | null = null
-          let n: Node | null = textWalker.firstChild()
-          while (n) { lastText = n; n = textWalker.nextNode() }
+          let n: Node | null = walker.firstChild()
+          while (n) { lastText = n; n = walker.nextNode() }
           if (lastText) { target = lastText; targetOff = (lastText as Text).length }
         }
 
         debugLog('startEdit effective target:', target.nodeName, 'offset:', targetOff, 'len:', (target as Text).length, 'text:', JSON.stringify(target.textContent))
         const [row, col, afterBr] = treeWalkerRowCol(contentEl.value, target, targetOff)
-        let sourceRow = visibleToSourceRow(row)
+        const sourceRow = visibleToSourceRow(row)
         const textLen = target.nodeType === Node.TEXT_NODE ? (target as Text).length : 0
+
         if (afterBr && row > 1 && (targetOff === 0 || (textLen > 0 && targetOff >= textLen))) {
-          const tw = document.createTreeWalker(contentEl.value, NodeFilter.SHOW_TEXT)
-          let bestNode: Node | null = null
-          let bestDist = Infinity
-          let n: Node | null = tw.firstChild()
-          while (n) {
-            const r = document.createRange()
-            r.setStart(n, 0)
-            r.setEnd(n, Math.min(1, (n as Text).length))
-            const rect = r.getBoundingClientRect()
-            if (rect) {
-              const dist = Math.abs(event.clientY - rect.top)
-              if (dist < bestDist) { bestDist = dist; bestNode = n }
-            }
-            n = tw.nextNode()
-          }
+          const bestNode = closestTextNodeByY(contentEl.value, event.clientY)
           debugLog('startEdit Y-closest node:', bestNode?.nodeName, 'text:', JSON.stringify((bestNode as Text)?.data))
           if (bestNode && bestNode !== target) {
             const [r2, c2] = treeWalkerRowCol(contentEl.value, bestNode, (bestNode as Text).length)

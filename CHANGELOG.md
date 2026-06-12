@@ -20,6 +20,11 @@
   the line end instead of the line start (handle `caretRangeFromPoint` offset 0
   quirk via bounding rect measurement)
 
+### Refactored
+- MarkdownField: extracted repeated inline markdown token scanning into
+  data-driven `TOKEN_PATTERNS` + `scanToken` helper; extracted
+  `closestTextNodeByY` helper; net -62 lines, zero functional change
+
 ## [0.3.0] — 2026-06-11
 
 ### Added
