@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0] — 2026-06-12
+
+### Refactored
+- Inspect dialog: moved from inline usage in GenerateDialog/ChatRoom to
+  centralized DialogStack Pinia store + Dialogs.vue component
+- Dialog stack: new Pinia store (`dialogStack`) manages visibility stack
+  and centralized Escape keydown handler; only the topmost dialog closes
+- InspectDialog is now a pure presentational component with no stack logic
+
+### Fixed
+- Escape in inspect dialog now only closes the inspect dialog, not parent
+- Escape works regardless of focus state (document-level listener)
+
 ## [0.4.0] — 2026-06-12
 
 ### Added
