@@ -84,12 +84,12 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 
 ## Tasks
 
-### Phase 1 — Core Types & Schema
+### Phase 1 — Core Types & Schema ✅
 
-- [ ] 1.1 Update `src/types.ts`: CharacterCardV3 type, Lorebook type, Asset type, CBS types
-- [ ] 1.2 Update `src/schemas/card.ts`: new Zod schemas with V3 fields and defaults
-- [ ] 1.3 Create `src/utils/coerce-v2-to-v3.ts`: pure upgrade function
-- [ ] 1.4 Run type-check: `npm run build` passes
+- [x] 1.1 Update `src/types.ts`: CharacterCardV3 type, Lorebook type, Asset type, CBS types
+- [x] 1.2 Update `src/schemas/card.ts`: new Zod schemas with V3 fields and defaults
+- [x] 1.3 Create `src/utils/coerce-v2-to-v3.ts`: pure upgrade function
+- [x] 1.4 Run type-check: `npm run build` passes
 
 **Test in this state:**
 - `npm run build` passes (vue-tsc + vite build, 0 errors)
@@ -98,13 +98,13 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - Old V2 DB records load and coerce without error
 - All existing UI panels render without type errors
 
-### Phase 2 — Import / Export Engine
+### Phase 2 — Import / Export Engine ✅
 
-- [ ] 2.1 Update `src/utils/png.ts`: `ccv3` chunk read/write; prefer `ccv3` over `chara`
-- [ ] 2.2 Update `src/utils/card-io.ts`: V3 detect, V2→V3 coercion in import; V3 export paths
-- [ ] 2.3 Create `src/utils/charx.ts`: CHARX zip read/write using jszip
-- [ ] 2.4 Update `downloadBlob` / `createExportFilename` to support `.charx`
-- [ ] 2.5 Test round-trip: import V2 PNG → edit → export V3 PNG → re-import
+- [x] 2.1 Update `src/utils/png.ts`: `ccv3` chunk read/write; prefer `ccv3` over `chara`
+- [x] 2.2 Update `src/utils/card-io.ts`: V3 detect, V2→V3 coercion in import; V3 export paths
+- [x] 2.3 Create `src/utils/charx.ts`: CHARX zip read/write using jszip
+- [x] 2.4 Update `downloadBlob` / `createExportFilename` to support `.charx`
+- [x] 2.5 Test round-trip: import V2 PNG → edit → export V3 PNG → re-import
 
 **Test in this state:**
 - Import V2 PNG (`chara` chunk) → coerced to V3, displayed as V3, saved as V3
