@@ -7,49 +7,6 @@ import MarkdownField from '../components/MarkdownField.vue';
 const store = useEditorStore();
 const rawTags = ref('');
 const showPreview = ref(false);
-const selectedLang = ref('en');
-const newLangCode = ref('');
-const showAddLang = ref(false);
-
-const languageOptions = [
-  { code: 'en', label: 'English' },
-  { code: 'ja', label: 'Japanese' },
-  { code: 'zh', label: 'Chinese' },
-  { code: 'ko', label: 'Korean' },
-  { code: 'ru', label: 'Russian' },
-  { code: 'es', label: 'Spanish' },
-  { code: 'fr', label: 'French' },
-  { code: 'de', label: 'German' },
-  { code: 'pt', label: 'Portuguese' },
-  { code: 'ar', label: 'Arabic' },
-];
-
-const availableLangs = computed(() => {
-  if (!store.cardJson?.data.creator_notes_multilingual) return [];
-  return Object.keys(store.cardJson.data.creator_notes_multilingual);
-});
-
-function addLanguage() {
-  if (!store.cardJson) return;
-  const code = newLangCode.value.trim() || selectedLang.value;
-  if (!code) return;
-  if (!store.cardJson.data.creator_notes_multilingual) {
-    store.cardJson.data.creator_notes_multilingual = {};
-  }
-  store.cardJson.data.creator_notes_multilingual[code] = '';
-  selectedLang.value = newLangCode.value.trim();
-  newLangCode.value = '';
-  showAddLang.value = false;
-}
-
-function removeLanguage(lang: string) {
-  if (!store.cardJson?.data.creator_notes_multilingual) return;
-  delete store.cardJson.data.creator_notes_multilingual[lang];
-  if (selectedLang.value === lang) {
-    const keys = Object.keys(store.cardJson.data.creator_notes_multilingual);
-    selectedLang.value = keys[0] ?? 'en';
-  }
-}
 
 function isUrl(str: string): boolean {
   return str.startsWith('http://') || str.startsWith('https://');
@@ -154,81 +111,8 @@ function pickImage() {
           />
         </div>
         <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="text-xs text-gray-400">Creator Notes</label>
-            <div v-if="availableLangs.length === 0" class="flex items-center gap-1">
-              <select
-                v-model="selectedLang"
-                class="px-1 py-0.5 text-[10px] bg-gray-800 border border-gray-600 rounded text-gray-300"
-              >
-                <option v-for="opt in languageOptions" :key="opt.code" :value="opt.code">
-                  {{ opt.label }}
-                </option>
-              </select>
-              <button
-                class="text-[10px] px-1.5 py-0.5 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
-                @click="addLanguage"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-          <template v-if="availableLangs.length > 0">
-            <div class="flex items-center gap-1 mb-1 flex-wrap">
-              <button
-                v-for="lang in availableLangs"
-                :key="lang"
-                class="text-[10px] px-1.5 py-0.5 rounded"
-                :class="selectedLang === lang ? 'bg-blue-700 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'"
-                @click="selectedLang = lang"
-              >
-                {{ lang }}
-              </button>
-              <button
-                class="text-[10px] px-1.5 py-0.5 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
-                @click="showAddLang = !showAddLang"
-              >
-                +
-              </button>
-            </div>
-            <div v-if="showAddLang" class="flex items-center gap-1 mb-1">
-              <input
-                v-model="newLangCode"
-                placeholder="lang code (e.g. fr)"
-                class="flex-1 px-1.5 py-0.5 text-[10px] bg-gray-800 border border-gray-600 rounded text-gray-200"
-                @keydown.enter="addLanguage"
-              />
-              <button
-                class="text-[10px] px-1.5 py-0.5 bg-green-800 hover:bg-green-700 rounded text-green-200"
-                @click="addLanguage"
-              >
-                ✓
-              </button>
-            </div>
-            <div class="flex items-center gap-1 mb-1">
-              <MarkdownField
-                v-if="store.cardJson?.data.creator_notes_multilingual?.[selectedLang] !== undefined"
-                :model-value="store.cardJson.data.creator_notes_multilingual[selectedLang] ?? ''"
-                @update:model-value="(v: string) => { if (store.cardJson?.data.creator_notes_multilingual) store.cardJson.data.creator_notes_multilingual[selectedLang] = v; }"
-              />
-              <MarkdownField
-                v-else
-                :model-value="''"
-                @update:model-value="(v: string) => { if (!store.cardJson) return; if (!store.cardJson.data.creator_notes_multilingual) store.cardJson.data.creator_notes_multilingual = {}; store.cardJson.data.creator_notes_multilingual[selectedLang] = v; }"
-              />
-              <button
-                class="text-[10px] px-1 py-0.5 text-gray-500 hover:text-red-400 self-start mt-1"
-                title="Remove language"
-                @click="removeLanguage(selectedLang)"
-              >
-                ✕
-              </button>
-            </div>
-          </template>
-          <MarkdownField
-            v-else
-            v-model="store.cardJson.data.creator_notes"
-          />
+          <label class="text-xs text-gray-400 block mb-1">Creator Notes</label>
+          <MarkdownField v-model="store.cardJson.data.creator_notes" />
         </div>
         <div v-if="store.cardJson?.data.source?.length">
           <label class="text-xs text-gray-400 block mb-1">Source</label>

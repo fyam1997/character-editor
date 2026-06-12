@@ -38,7 +38,7 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 
 | Panel | Changes |
 |---|---|
-| `InfoPanel.vue` | Add `nickname` text input (between name and tags). Replace single `creator_notes` with language selector + `creator_notes_multilingual` editor. Show `source` as read-only list (with open-in-new-tab for URLs). |
+| `InfoPanel.vue` | Add `nickname` text input (between name and tags). Keep `creator_notes` as single MarkdownField. Show `source` as read-only list (with open-in-new-tab for URLs). |
 | `GreetingsPanel.vue` | Add `group_only_greetings` section (separate list of greetings, only used in group chats). V3 keeps `first_mes` and `alternate_greetings` in parallel (no more shifting on export). |
 | `LoreBookPanel.vue` | Rename internal references: `character_book` → `character_book` (field name unchanged in JSON, but type name changes). |
 | `EntryCard.vue` | Add `use_regex` toggle (checkbox in basic section). `constant` moves from "advanced" to prominent position (required-to-implement per V3). `id` field accepts number or string. |
@@ -158,14 +158,14 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 
 ### Phase 6 — Modified Panels
 
-- [ ] 6.1 `InfoPanel.vue`: add `nickname` input, multilingual creator notes editor, `source` read-only display
+- [ ] 6.1 `InfoPanel.vue`: add `nickname` input, keep `creator_notes` as single MarkdownField, `source` read-only display
 - [ ] 6.2 `GreetingsPanel.vue`: add `group_only_greetings` section; remove `first_mes` ↔ `alternate_greetings[0]` sync for V3
 - [ ] 6.3 `EntryCard.vue`: add `use_regex` toggle; promote `constant`; widen `id` input
 - [ ] 6.4 Sidebar `newCard()`: create V3 structure
 
 **Test in this state:**
 - **InfoPanel**: nickname input between name and tags → sets `data.nickname`
-- **InfoPanel**: `creator_notes_multilingual` editor with language selector → stores as `Record<lang, string>`
+- **InfoPanel**: `creator_notes` rendered as single MarkdownField
 - **InfoPanel**: `source` array displayed as chip/list; URLs open in new tab
 - **GreetingsPanel**: `group_only_greetings` section — add/edit/remove works
 - **GreetingsPanel**: V3 export preserves `alternate_greetings` in parallel with `first_mes` (no shift)
