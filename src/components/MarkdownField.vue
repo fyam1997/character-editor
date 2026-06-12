@@ -45,26 +45,35 @@ function getCaretRange(event: MouseEvent): Range | null {
   if (range && range.startOffset === 0 && range.startContainer.nodeType === Node.TEXT_NODE) {
     const textNode = range.startContainer as Text
     if (textNode.length > 0) {
-      const endRange = document.createRange()
-      endRange.setStart(textNode, textNode.length)
-      endRange.collapse(true)
-      const endRect = endRange.getBoundingClientRect()
-      if (endRect && event.clientX > endRect.left + 1) {
-        range.setStart(textNode, textNode.length)
-        range.collapse(true)
+      let prev: ChildNode | null = textNode.previousSibling
+      while (prev && prev.nodeType === Node.TEXT_NODE && (prev as Text).data.trim() === '') {
+        prev = prev.previousSibling
       }
+      const isAfterBr = prev?.nodeName === 'BR'
+      if (!isAfterBr) {
+        const endRange = document.createRange()
+        endRange.setStart(textNode, textNode.length)
+        endRange.collapse(true)
+        const endRect = endRange.getBoundingClientRect()
+        if (endRect && event.clientX > endRect.left + 1) {
+          range.setStart(textNode, textNode.length)
+          range.collapse(true)
+        }
+      }
+      debugLog('getCaretRange offset0:', 'text:', JSON.stringify(textNode.data), 'prev:', prev?.nodeName, 'isAfterBr:', isAfterBr, 'adjusted:', range.startOffset !== 0)
     }
   }
 
   return range
 }
 
-function treeWalkerRowCol(container: HTMLElement, target: Node, targetOff: number): [number, number] {
+function treeWalkerRowCol(container: HTMLElement, target: Node, targetOff: number): [number, number, boolean] {
   const blockTags = new Set(['P','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE','DIV','HR','TD','TH'])
   let row = 0
   let col = 0
   let inNewBlock = true
   let afterBr = false
+  let afterBrAtTarget = false
 
   const walkLog: string[] = []
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_ALL)
@@ -81,12 +90,19 @@ function treeWalkerRowCol(container: HTMLElement, target: Node, targetOff: numbe
     }
     if (node.nodeType === Node.TEXT_NODE) {
       const text = (node as Text).data
-      if (text.trim() === '') { node = walker.nextNode(); continue }
+      if (text.trim() === '' && /[\n\r]/.test(text)) { node = walker.nextNode(); continue }
+      if (text.trim() === '') {
+        col += text.length
+        if (inNewBlock) inNewBlock = false
+        if (afterBr) afterBr = false
+        node = walker.nextNode(); continue
+      }
       const parts = text.split('\n')
       let effectiveLines = parts.length
       if (effectiveLines > 1 && parts[effectiveLines - 1] === '') effectiveLines--
 
       if (isTarget) {
+        afterBrAtTarget = afterBr
         let remaining = targetOff
         let lineIdx = 0
         while (lineIdx < effectiveLines && remaining > parts[lineIdx].length) {
@@ -117,7 +133,7 @@ function treeWalkerRowCol(container: HTMLElement, target: Node, targetOff: numbe
   }
   debugLog('walker:', walkLog.join(' | '))
   debugLog('result row:', row, 'col:', col)
-  return [row, col]
+  return [row, col, afterBrAtTarget]
 }
 
 function visibleToSourceRow(row: number): number {
@@ -152,11 +168,12 @@ function sourceOffset(row: number, col: number): number {
       const close = sourceLine.indexOf('**', srcIdx + 2)
       if (close !== -1) {
         srcIdx += 2
-        const take = Math.min(close - srcIdx, col - rendIdx)
+        const contentLen = close - srcIdx
+        const take = Math.min(contentLen, col - rendIdx)
         if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx >= col) break
-        srcIdx = close + 2
-        continue
+        if (rendIdx < col) { srcIdx = close + 2; continue }
+        if (take === contentLen) srcIdx = close + 2
+        break
       }
     }
 
@@ -164,11 +181,12 @@ function sourceOffset(row: number, col: number): number {
       const close = sourceLine.indexOf('*', srcIdx + 1)
       if (close !== -1) {
         srcIdx++
-        const take = Math.min(close - srcIdx, col - rendIdx)
+        const contentLen = close - srcIdx
+        const take = Math.min(contentLen, col - rendIdx)
         if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx >= col) break
-        srcIdx = close + 1
-        continue
+        if (rendIdx < col) { srcIdx = close + 1; continue }
+        if (take === contentLen) srcIdx = close + 1
+        break
       }
     }
 
@@ -176,11 +194,12 @@ function sourceOffset(row: number, col: number): number {
       const close = sourceLine.indexOf('__', srcIdx + 2)
       if (close !== -1) {
         srcIdx += 2
-        const take = Math.min(close - srcIdx, col - rendIdx)
+        const contentLen = close - srcIdx
+        const take = Math.min(contentLen, col - rendIdx)
         if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx >= col) break
-        srcIdx = close + 2
-        continue
+        if (rendIdx < col) { srcIdx = close + 2; continue }
+        if (take === contentLen) srcIdx = close + 2
+        break
       }
     }
 
@@ -188,11 +207,12 @@ function sourceOffset(row: number, col: number): number {
       const close = sourceLine.indexOf('_', srcIdx + 1)
       if (close !== -1) {
         srcIdx++
-        const take = Math.min(close - srcIdx, col - rendIdx)
+        const contentLen = close - srcIdx
+        const take = Math.min(contentLen, col - rendIdx)
         if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx >= col) break
-        srcIdx = close + 1
-        continue
+        if (rendIdx < col) { srcIdx = close + 1; continue }
+        if (take === contentLen) srcIdx = close + 1
+        break
       }
     }
 
@@ -200,11 +220,12 @@ function sourceOffset(row: number, col: number): number {
       const close = sourceLine.indexOf('`', srcIdx + 1)
       if (close !== -1) {
         srcIdx++
-        const take = Math.min(close - srcIdx, col - rendIdx)
+        const contentLen = close - srcIdx
+        const take = Math.min(contentLen, col - rendIdx)
         if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx >= col) break
-        srcIdx = close + 1
-        continue
+        if (rendIdx < col) { srcIdx = close + 1; continue }
+        if (take === contentLen) srcIdx = close + 1
+        break
       }
     }
 
@@ -212,11 +233,12 @@ function sourceOffset(row: number, col: number): number {
       const close = sourceLine.indexOf('~~', srcIdx + 2)
       if (close !== -1) {
         srcIdx += 2
-        const take = Math.min(close - srcIdx, col - rendIdx)
+        const contentLen = close - srcIdx
+        const take = Math.min(contentLen, col - rendIdx)
         if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx >= col) break
-        srcIdx = close + 2
-        continue
+        if (rendIdx < col) { srcIdx = close + 2; continue }
+        if (take === contentLen) srcIdx = close + 2
+        break
       }
     }
 
@@ -224,11 +246,23 @@ function sourceOffset(row: number, col: number): number {
       const closeBracket = sourceLine.indexOf(']', srcIdx + 2)
       if (closeBracket !== -1) {
         srcIdx += 2
-        const take = Math.min(closeBracket - srcIdx, col - rendIdx)
+        const contentLen = closeBracket - srcIdx
+        const take = Math.min(contentLen, col - rendIdx)
         if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx >= col) break
-        srcIdx = sourceLine.indexOf(')', closeBracket)
-        if (srcIdx !== -1) { srcIdx++; continue }
+        if (rendIdx < col || take < contentLen) {
+          if (rendIdx < col) {
+            const closeParen = sourceLine.indexOf(')', closeBracket)
+            if (closeParen !== -1) { srcIdx = closeParen + 1; continue }
+          }
+          if (take === contentLen) {
+            const closeParen = sourceLine.indexOf(')', closeBracket)
+            if (closeParen !== -1) srcIdx = closeParen + 1
+          }
+          break
+        }
+        const closeParen = sourceLine.indexOf(')', closeBracket)
+        if (closeParen !== -1) srcIdx = closeParen + 1
+        break
       }
     }
 
@@ -236,11 +270,23 @@ function sourceOffset(row: number, col: number): number {
       const closeBracket = sourceLine.indexOf(']', srcIdx + 1)
       if (closeBracket !== -1) {
         srcIdx++
-        const take = Math.min(closeBracket - srcIdx, col - rendIdx)
+        const contentLen = closeBracket - srcIdx
+        const take = Math.min(contentLen, col - rendIdx)
         if (take > 0) { srcIdx += take; rendIdx += take }
-        if (rendIdx >= col) break
-        srcIdx = sourceLine.indexOf(')', closeBracket)
-        if (srcIdx !== -1) { srcIdx++; continue }
+        if (rendIdx < col || take < contentLen) {
+          if (rendIdx < col) {
+            const closeParen = sourceLine.indexOf(')', closeBracket)
+            if (closeParen !== -1) { srcIdx = closeParen + 1; continue }
+          }
+          if (take === contentLen) {
+            const closeParen = sourceLine.indexOf(')', closeBracket)
+            if (closeParen !== -1) srcIdx = closeParen + 1
+          }
+          break
+        }
+        const closeParen = sourceLine.indexOf(')', closeBracket)
+        if (closeParen !== -1) srcIdx = closeParen + 1
+        break
       }
     }
 
@@ -267,10 +313,51 @@ function startEdit(event: MouseEvent) {
     try {
       const range = getCaretRange(event)
       if (range && contentEl.value.contains(range.startContainer)) {
-        debugLog('startEdit target:', range.startContainer.nodeName, 'offset:', range.startOffset, 'text:', JSON.stringify(range.startContainer.textContent))
-        const [row, col] = treeWalkerRowCol(contentEl.value, range.startContainer, range.startOffset)
-        const sourceRow = visibleToSourceRow(row)
-        clickPos = sourceOffset(sourceRow, col)
+        let target = range.startContainer
+        let targetOff = range.startOffset
+
+        if (target.nodeType === Node.ELEMENT_NODE) {
+          const textWalker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT)
+          let lastText: Node | null = null
+          let n: Node | null = textWalker.firstChild()
+          while (n) { lastText = n; n = textWalker.nextNode() }
+          if (lastText) { target = lastText; targetOff = (lastText as Text).length }
+        }
+
+        debugLog('startEdit effective target:', target.nodeName, 'offset:', targetOff, 'len:', (target as Text).length, 'text:', JSON.stringify(target.textContent))
+        const [row, col, afterBr] = treeWalkerRowCol(contentEl.value, target, targetOff)
+        let sourceRow = visibleToSourceRow(row)
+        const textLen = target.nodeType === Node.TEXT_NODE ? (target as Text).length : 0
+        if (afterBr && row > 1 && (targetOff === 0 || (textLen > 0 && targetOff >= textLen))) {
+          const tw = document.createTreeWalker(contentEl.value, NodeFilter.SHOW_TEXT)
+          let bestNode: Node | null = null
+          let bestDist = Infinity
+          let n: Node | null = tw.firstChild()
+          while (n) {
+            const r = document.createRange()
+            r.setStart(n, 0)
+            r.setEnd(n, Math.min(1, (n as Text).length))
+            const rect = r.getBoundingClientRect()
+            if (rect) {
+              const dist = Math.abs(event.clientY - rect.top)
+              if (dist < bestDist) { bestDist = dist; bestNode = n }
+            }
+            n = tw.nextNode()
+          }
+          debugLog('startEdit Y-closest node:', bestNode?.nodeName, 'text:', JSON.stringify((bestNode as Text)?.data))
+          if (bestNode && bestNode !== target) {
+            const [r2, c2] = treeWalkerRowCol(contentEl.value, bestNode, (bestNode as Text).length)
+            const sr2 = visibleToSourceRow(r2)
+            clickPos = sourceOffset(sr2, c2)
+            debugLog('startEdit afterBr Y-fix: row:', r2, 'col:', c2, 'sourceRow:', sr2, 'clickPos:', clickPos)
+          } else {
+            clickPos = sourceOffset(sourceRow, col)
+            debugLog('startEdit afterBr same-target fallback: row:', row, 'col:', col, 'sourceRow:', sourceRow, 'clickPos:', clickPos)
+          }
+        } else {
+          clickPos = sourceOffset(sourceRow, col)
+          debugLog('startEdit normal path: row:', row, 'col:', col, 'sourceRow:', sourceRow, 'afterBr:', afterBr, 'clickPos:', clickPos)
+        }
       }
     } catch { /* fall through */ }
   }

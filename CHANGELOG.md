@@ -19,10 +19,6 @@
 - MarkdownField: clicks past the end of a rendered line now place the cursor at
   the line end instead of the line start (handle `caretRangeFromPoint` offset 0
   quirk via bounding rect measurement)
-- MarkdownField: inline markdown syntax (`**bold**`, `*italic*`, `__bold__`,
-  `_italic_`, `` `code` ``, `~~strikethrough~~`, `[link](url)`, `![image](url)`)
-  is now accounted for when mapping rendered click position to source cursor
-  position via character-by-character scanner
 
 ## [0.3.0] — 2026-06-11
 
