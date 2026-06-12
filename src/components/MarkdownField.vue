@@ -2,6 +2,8 @@
 import { ref, computed, nextTick } from 'vue'
 import { marked } from 'marked'
 
+const debugLog = import.meta.env.DEV ? console.log.bind(console, '[MarkdownField]') : () => {}
+
 const props = defineProps<{
   modelValue: string
   readonly?: boolean
@@ -39,6 +41,21 @@ function getCaretRange(event: MouseEvent): Range | null {
       range.collapse(true)
     }
   }
+
+  if (range && range.startOffset === 0 && range.startContainer.nodeType === Node.TEXT_NODE) {
+    const textNode = range.startContainer as Text
+    if (textNode.length > 0) {
+      const endRange = document.createRange()
+      endRange.setStart(textNode, textNode.length)
+      endRange.collapse(true)
+      const endRect = endRange.getBoundingClientRect()
+      if (endRect && event.clientX > endRect.left + 1) {
+        range.setStart(textNode, textNode.length)
+        range.collapse(true)
+      }
+    }
+  }
+
   return range
 }
 
@@ -49,15 +66,18 @@ function treeWalkerRowCol(container: HTMLElement, target: Node, targetOff: numbe
   let inNewBlock = true
   let afterBr = false
 
+  const walkLog: string[] = []
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_ALL)
   let node: Node | null = walker.currentNode
   while (node) {
     if (node === container) { node = walker.nextNode(); continue }
     const isTarget = node === target
+    const tag = node.nodeType === Node.ELEMENT_NODE ? (node as Element).tagName : (node.nodeType === Node.TEXT_NODE ? '#text' : '')
+    const prevRow = row; const prevCol = col
     if (node.nodeType === Node.ELEMENT_NODE) {
-      const tag = (node as Element).tagName
-      if (tag === 'BR') { row++; col = 0; afterBr = true }
-      else if (blockTags.has(tag)) { inNewBlock = true; col = 0; afterBr = false }
+      const t = (node as Element).tagName
+      if (t === 'BR') { row++; col = 0; afterBr = true }
+      else if (blockTags.has(t)) { inNewBlock = true; col = 0; afterBr = false }
     }
     if (node.nodeType === Node.TEXT_NODE) {
       const text = (node as Text).data
@@ -90,9 +110,12 @@ function treeWalkerRowCol(container: HTMLElement, target: Node, targetOff: numbe
         col += text.length
       }
     }
+    walkLog.push(`${tag}${isTarget?'*':''} r${prevRow}→${row} c${prevCol}→${col}`)
     if (isTarget) break
     node = walker.nextNode()
   }
+  debugLog('walker:', walkLog.join(' | '))
+  debugLog('result row:', row, 'col:', col)
   return [row, col]
 }
 
@@ -105,7 +128,9 @@ function visibleToSourceRow(row: number): number {
     if (/^(?:[-*_]\s*){3,}$/.test(l.trim())) continue
     visible.push(i)
   }
-  return visible[row] ?? Math.min(row, sourceLines.length - 1)
+  const srcRow = visible[row] ?? Math.min(row, sourceLines.length - 1)
+  debugLog('visibleToSource visible:', JSON.stringify(visible), 'row:', row, '→ srcRow:', srcRow)
+  return srcRow
 }
 
 function sourceOffset(row: number, col: number): number {
@@ -121,7 +146,9 @@ function sourceOffset(row: number, col: number): number {
     pos += sourceLines[i].length + 1
   }
   pos += Math.min(adjustedCol, sourceLine.length)
-  return Math.min(pos, props.modelValue.length)
+  const result = Math.min(pos, props.modelValue.length)
+  debugLog('sourceOffset row:', row, 'col:', col, 'prefixLen:', prefixLen, 'adjustedCol:', adjustedCol, 'sourceLine:', JSON.stringify(sourceLine), '→ pos:', result)
+  return result
 }
 
 function startEdit(event: MouseEvent) {
@@ -131,6 +158,7 @@ function startEdit(event: MouseEvent) {
     try {
       const range = getCaretRange(event)
       if (range && contentEl.value.contains(range.startContainer)) {
+        debugLog('startEdit target:', range.startContainer.nodeName, 'offset:', range.startOffset, 'text:', JSON.stringify(range.startContainer.textContent))
         const [row, col] = treeWalkerRowCol(contentEl.value, range.startContainer, range.startOffset)
         const sourceRow = visibleToSourceRow(row)
         clickPos = sourceOffset(sourceRow, col)

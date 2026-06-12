@@ -16,6 +16,9 @@
 - MarkdownField: `startEdit` now uses DOM tree walker to correctly map clicks in
   rendered preview to source cursor position, handling headings, lists
   (including nested/indented), code blocks, and blockquotes
+- MarkdownField: clicks past the end of a rendered line now place the cursor at
+  the line end instead of the line start (handle `caretRangeFromPoint` offset 0
+  quirk via bounding rect measurement)
 
 ## [0.3.0] — 2026-06-11
 
