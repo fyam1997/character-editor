@@ -93,6 +93,24 @@ function update<K extends keyof LorebookEntry>(key: K, value: LorebookEntry[K]) 
           class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
         />
       </div>
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-1 text-xs text-gray-400">
+          <input
+            type="checkbox"
+            :checked="entry.constant ?? false"
+            @change="update('constant', ($event.target as HTMLInputElement).checked)"
+          />
+          Constant
+        </label>
+        <label class="flex items-center gap-1 text-xs text-gray-400">
+          <input
+            type="checkbox"
+            :checked="entry.use_regex ?? false"
+            @change="update('use_regex', ($event.target as HTMLInputElement).checked)"
+          />
+          Use Regex
+        </label>
+      </div>
       <div>
         <div class="flex items-center justify-between mb-0.5">
           <label class="text-xs text-gray-400">Content</label>
@@ -124,8 +142,12 @@ function update<K extends keyof LorebookEntry>(key: K, value: LorebookEntry[K]) 
             <label class="text-xs text-gray-400 block mb-0.5">ID</label>
             <input
               :value="entry.id ?? ''"
-              @input="update('id', Number(($event.target as HTMLInputElement).value) || undefined)"
-              type="number"
+              @input="
+                update(
+                  'id',
+                  (($event.target as HTMLInputElement).value as string | number) || undefined,
+                )
+              "
               class="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200"
             />
           </div>
@@ -171,17 +193,7 @@ function update<K extends keyof LorebookEntry>(key: K, value: LorebookEntry[K]) 
               Case Sensitive
             </label>
           </div>
-          <div class="flex items-end pb-1">
-            <label class="flex items-center gap-1 text-xs text-gray-400">
-              <input
-                type="checkbox"
-                :checked="entry.constant ?? false"
-                @change="update('constant', ($event.target as HTMLInputElement).checked)"
-              />
-              Constant
-            </label>
           </div>
-        </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="text-xs text-gray-400 block mb-0.5">Position</label>
