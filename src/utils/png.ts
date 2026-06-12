@@ -1,5 +1,6 @@
 import { getMetadata, addMetadata } from 'meta-png';
 import { Base64 } from 'js-base64';
+import type { CharacterCardV2, CharacterCardV3 } from '../types';
 
 export function isPng(buf: ArrayBuffer): boolean {
   if (buf.byteLength < 8) return false;
@@ -21,22 +22,41 @@ export function extractJsonFromPng(buf: ArrayBuffer): {
   pngBytes: ArrayBuffer;
 } {
   const bytes = new Uint8Array(buf);
-  const encoded = getMetadata(bytes, 'chara');
-  let json: unknown;
+
+  let encoded = getMetadata(bytes, 'ccv3');
   if (encoded) {
     const decoded = Base64.decode(encoded);
-    json = JSON.parse(decoded);
-    console.log(json);
-  } else {
-    json = null;
+    return { json: JSON.parse(decoded), pngBytes: buf };
   }
-  return { json, pngBytes: buf };
+
+  encoded = getMetadata(bytes, 'chara');
+  if (encoded) {
+    const decoded = Base64.decode(encoded);
+    return { json: JSON.parse(decoded), pngBytes: buf };
+  }
+
+  return { json: null, pngBytes: buf };
 }
 
-export function embedJsonInPng(pngBytes: ArrayBuffer, json: unknown): Blob {
+export function embedJsonInPng(
+  pngBytes: ArrayBuffer,
+  json: CharacterCardV2 | CharacterCardV3,
+  options?: { embedV2Fallback?: boolean },
+): Blob {
   const compact = JSON.stringify(json);
   const encoded = Base64.encode(compact);
-  const bytes = new Uint8Array(pngBytes);
-  const result = addMetadata(bytes, 'chara', encoded);
-  return new Blob([result], { type: 'image/png' });
+  let bytes = new Uint8Array(pngBytes);
+
+  if (json.spec === 'chara_card_v3') {
+    bytes = addMetadata(bytes, 'ccv3', encoded);
+    if (options?.embedV2Fallback) {
+      const v2compact = JSON.stringify(json);
+      const v2encoded = Base64.encode(v2compact);
+      bytes = addMetadata(bytes, 'chara', v2encoded);
+    }
+  } else {
+    bytes = addMetadata(bytes, 'chara', encoded);
+  }
+
+  return new Blob([bytes], { type: 'image/png' });
 }

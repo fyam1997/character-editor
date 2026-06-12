@@ -16,9 +16,11 @@ import {
   prepareExport,
   exportAsJson,
   exportAsPng,
+  exportCardAsCharx,
   downloadBlob,
   createExportFilename,
 } from './utils/card-io';
+import type { CharacterCardV3 } from './types';
 import type { GenerateField } from './utils/generate';
 
 const store = useEditorStore();
@@ -77,7 +79,7 @@ function onStartChat(greeting: string) {
   store.createSession(greeting);
 }
 
-async function handleExport(type: 'json' | 'png') {
+async function handleExport(type: 'json' | 'png' | 'charx') {
   if (!store.cardJson) return;
   const json = prepareExport(store.cardJson);
   const name = json.data.name || 'character';
@@ -89,6 +91,10 @@ async function handleExport(type: 'json' | 'png') {
     const pngBytes = await store.pngBlob.arrayBuffer();
     const blob = await exportAsPng(json, pngBytes);
     downloadBlob(blob, createExportFilename(name, 'png'));
+  } else if (type === 'charx') {
+    const v3 = json as CharacterCardV3;
+    const blob = await exportCardAsCharx(v3, v3.data.assets);
+    downloadBlob(blob, createExportFilename(name, 'charx'));
   }
 }
 </script>
@@ -133,6 +139,12 @@ async function handleExport(type: 'json' | 'png') {
               @click="handleExport('png')"
             >
               ↓ Export PNG
+            </button>
+            <button
+              class="flex-1 px-2 py-1 bg-indigo-700 hover:bg-indigo-600 text-indigo-100 rounded text-center"
+              @click="handleExport('charx')"
+            >
+              ↓ Export CHARX
             </button>
           </div>
         </template>
