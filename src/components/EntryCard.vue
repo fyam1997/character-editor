@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import type { CharacterBookEntry } from '../types';
+import type { LorebookEntry } from '../types';
 import MarkdownField from './MarkdownField.vue';
 import ExtensionsTable from './ExtensionsTable.vue';
 
 const props = defineProps<{
-  entry: CharacterBookEntry;
+  entry: LorebookEntry;
   index: number;
   total: number;
 }>();
@@ -37,21 +37,21 @@ watch(
 );
 
 function commitKeys() {
-  (props.entry as CharacterBookEntry).keys = rawKeys.value
+  (props.entry as LorebookEntry).keys = rawKeys.value
     .split(',')
     .map(s => s.trim())
     .filter(Boolean);
 }
 
 function commitSecKeys() {
-  (props.entry as CharacterBookEntry).secondary_keys = rawSecKeys.value
+  (props.entry as LorebookEntry).secondary_keys = rawSecKeys.value
     .split(',')
     .map(s => s.trim())
     .filter(Boolean);
 }
 
-function update<K extends keyof CharacterBookEntry>(key: K, value: CharacterBookEntry[K]) {
-  (props.entry as CharacterBookEntry)[key] = value;
+function update<K extends keyof LorebookEntry>(key: K, value: LorebookEntry[K]) {
+  (props.entry as LorebookEntry)[key] = value;
 }
 </script>
 

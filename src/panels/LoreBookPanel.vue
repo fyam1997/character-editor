@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useEditorStore } from '../stores/editor';
-import type { CharacterBookEntry } from '../types';
+import type { LorebookEntry } from '../types';
 import EntryCard from '../components/EntryCard.vue';
 import CollapsibleSection from '../components/CollapsibleSection.vue';
 import ExtensionsTable from '../components/ExtensionsTable.vue';
@@ -42,7 +42,7 @@ watch(() => book.value?.entries.length, syncKeys, { immediate: true });
 
 function addEntry(index: number) {
   if (!book.value) return;
-  const entry: CharacterBookEntry = {
+  const entry: LorebookEntry = {
     keys: [],
     content: '',
     extensions: {},

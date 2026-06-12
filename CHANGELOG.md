@@ -2,6 +2,13 @@
 
 ## [0.3.0] — 2026-06-12
 
+### Changed
+- Migrate core types to V3: `CharacterCardV3`, `Lorebook`, `LorebookEntry`, `Asset`
+- Update Zod schemas for V3: `cardV3Schema`, `cardDataV3Schema`, `lorebookSchema`, `lorebookExportSchema`
+- Create `coerceV2toV3()` utility for backward-compatible V2→V3 upgrade
+- Widen `id` field in lore entries to accept `number | string`
+- Widen `prepareExport`, `assembleApiMessages`, `assembleGeneratePrompt` to accept V2 or V3 cards
+
 ### Added
 - Debug checkbox "Reopen Last Session" — when enabled, auto-selects the last
   active chat session for the current card on entry
