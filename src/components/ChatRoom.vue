@@ -61,7 +61,18 @@ watch(() => assembledInfo.value, (newInfo, oldInfo) => {
   }
 }, { immediate: true })
 
-onMounted(() => store.loadSessionsForCard())
+function tryAutoSelectLastSession() {
+  if (!store.reopenLastSession || store.activeCardId == null) return
+  const lastId = store.getLastSessionId(store.activeCardId)
+  if (lastId != null && store.sessions.some(s => s.id === lastId)) {
+    store.selectSession(lastId)
+  }
+}
+
+onMounted(async () => {
+  await store.loadSessionsForCard()
+  tryAutoSelectLastSession()
+})
 
 function selectAndClose(id: number) {
   store.selectSession(id)
@@ -71,6 +82,7 @@ function selectAndClose(id: number) {
 watch(() => store.activeCardId, async () => {
   store.activeSessionId = null
   await store.loadSessionsForCard()
+  tryAutoSelectLastSession()
 })
 
 watch(() => store.activeSessionId, () => {

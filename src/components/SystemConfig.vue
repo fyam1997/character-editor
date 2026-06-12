@@ -93,6 +93,10 @@ function resetMockText() {
           <input type="checkbox" v-model="store.mockInspect" />
           Mock Response
         </label>
+        <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+          <input type="checkbox" v-model="store.reopenLastSession" />
+          Reopen Last Session
+        </label>
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="text-xs text-gray-400">Mock Response Text</label>
