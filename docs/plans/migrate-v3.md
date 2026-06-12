@@ -114,10 +114,10 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - Export V3 PNG (`ccv3`) → re-import → round-trip preserved
 - `npm run build` passes
 
-### Phase 3 — Storage & State
+### Phase 3 — Storage & State ✅
 
-- [ ] 3.1 Update `src/stores/editor.ts`: V3 type, auto-set `creation_date`, update `modification_date`
-- [ ] 3.2 Update `src/storage/db.ts`: widen CardRecord type, no migration needed (coercion in store)
+- [x] 3.1 Update `src/stores/editor.ts`: V3 type, auto-set `creation_date`, update `modification_date`
+- [x] 3.2 Update `src/storage/db.ts`: widen CardRecord type, no migration needed (coercion in store)
 - [ ] 3.3 Test: load old V2 DB records → auto-coerced to V3 → save → reload
 
 **Test in this state:**

@@ -4,6 +4,9 @@
 
 ### Changed
 - Migrate core types to V3: `CharacterCardV3`, `Lorebook`, `LorebookEntry`, `Asset`
+- Storage layer: auto-set `creation_date` (Unix seconds) on new card creation
+- Storage layer: update `modification_date` on save/export
+- Bump Dexie DB version to 3 for V3 schema documentation
 - Update Zod schemas for V3: `cardV3Schema`, `cardDataV3Schema`, `lorebookSchema`, `lorebookExportSchema`
 - Create `coerceV2toV3()` utility for backward-compatible V2→V3 upgrade
 - Widen `id` field in lore entries to accept `number | string`
