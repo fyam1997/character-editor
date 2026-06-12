@@ -15,4 +15,9 @@ db.version(2).stores({
   chatSessions: '++id, cardId, updatedAt',
 });
 
+db.version(3).stores({
+  cards: '++id, name, updatedAt',
+  chatSessions: '++id, cardId, updatedAt',
+});
+
 export { db };

@@ -107,6 +107,7 @@ export const useEditorStore = defineStore('editor', () => {
     if (!id || id === -1 || !json) return;
     const existing = await db.cards.get(id);
     if (!existing) return;
+    json.data.modification_date = Math.floor(Date.now() / 1000);
     const plain = toPlain(json);
     await db.cards.update(id, {
       name: plain.data.name || 'Untitled',
@@ -165,6 +166,9 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   async function addCard(cardJson_: CharacterCardV2 | CharacterCardV3, blob?: Blob): Promise<number | undefined> {
+    if (cardJson_.spec === 'chara_card_v3' && !cardJson_.data.creation_date) {
+      cardJson_.data.creation_date = Math.floor(Date.now() / 1000);
+    }
     const now = new Date().toISOString();
     const plain = toPlain(cardJson_);
     const id = await db.cards.add({
