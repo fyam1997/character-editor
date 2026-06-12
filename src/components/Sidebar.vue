@@ -2,7 +2,6 @@
 import { onMounted } from 'vue';
 import { useEditorStore } from '../stores/editor';
 import { importCard } from '../utils/card-io';
-import { importCharx } from '../utils/charx';
 import type { CharacterCardV3 } from '../types';
 
 const store = useEditorStore();
@@ -25,22 +24,16 @@ onMounted(async () => {
 async function handleImport() {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.png,.json,.charx';
+  input.accept = '.png,.json';
   input.click();
   input.onchange = async () => {
     const file = input.files?.[0];
     if (!file) return;
     try {
       const buf = await file.arrayBuffer();
-      if (file.name.endsWith('.charx')) {
-        const { json } = await importCharx(buf);
-        const id = await store.addCard(json);
-        await store.setActiveCard(id!, json);
-      } else {
-        const { json, pngBlob } = importCard(buf);
-        const id = await store.addCard(json, pngBlob);
-        await store.setActiveCard(id!, json);
-      }
+      const { json, pngBlob } = importCard(buf);
+      const id = await store.addCard(json, pngBlob);
+      await store.setActiveCard(id!, json);
     } catch (e) {
       alert((e as Error)?.message ?? 'Import failed');
     }

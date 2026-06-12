@@ -1,7 +1,6 @@
-import type { CharacterCardV2, CharacterCardV3, Asset } from '../types';
+import type { CharacterCardV2, CharacterCardV3 } from '../types';
 import { isPng, extractJsonFromPng, embedJsonInPng } from './png';
 import { coerceV2toV3 } from './coerce-v2-to-v3';
-import { exportAsCharx } from './charx';
 
 export interface ImportResult {
   json: CharacterCardV3;
@@ -89,13 +88,6 @@ export async function exportAsPng(
   options?: { embedV2Fallback?: boolean },
 ): Promise<Blob> {
   return embedJsonInPng(pngBytes, cardJson, options);
-}
-
-export async function exportCardAsCharx(
-  cardJson: CharacterCardV3,
-  assets?: Asset[],
-): Promise<Blob> {
-  return exportAsCharx(cardJson, assets);
 }
 
 export function createExportFilename(name: string, ext: string): string {

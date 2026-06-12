@@ -2,7 +2,7 @@
 
 ## Problem
 
-The current editor implements the Character Card V2 specification (`spec_v2.md`). The new V3 spec introduces significant changes: top-level card fields ( `nickname`, `assets`, `source`, `group_only_greetings`, `creator_notes_multilingual`, `creation_date`, `modification_date`), a new Lorebook entry field (`use_regex`), Lorebook decorators system, new embedding formats (`ccv3` PNG chunk, `.charx` zip), and Curly Braced Syntaxes (CBS). The editor must support **creating, editing, importing, and exporting** V3 cards while maintaining backward compatibility with V2.
+The current editor implements the Character Card V2 specification (`spec_v2.md`). The new V3 spec introduces significant changes: top-level card fields ( `nickname`, `assets`, `source`, `group_only_greetings`, `creator_notes_multilingual`, `creation_date`, `modification_date`), a new Lorebook entry field (`use_regex`), Lorebook decorators system, new embedding format (`ccv3` PNG chunk), and Curly Braced Syntaxes (CBS). The editor must support **creating, editing, importing, and exporting** V3 cards while maintaining backward compatibility with V2.
 
 ## Scope
 
@@ -102,9 +102,7 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 
 - [x] 2.1 Update `src/utils/png.ts`: `ccv3` chunk read/write; prefer `ccv3` over `chara`
 - [x] 2.2 Update `src/utils/card-io.ts`: V3 detect, V2→V3 coercion in import; V3 export paths
-- [x] 2.3 Create `src/utils/charx.ts`: CHARX zip read/write using jszip
-- [x] 2.4 Update `downloadBlob` / `createExportFilename` to support `.charx`
-- [x] 2.5 Test round-trip: import V2 PNG → edit → export V3 PNG → re-import
+- [x] 2.3 Test round-trip: import V2 PNG → edit → export V3 PNG → re-import
 
 **Test in this state:**
 - Import V2 PNG (`chara` chunk) → coerced to V3, displayed as V3, saved as V3
@@ -112,9 +110,6 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - Both chunks present (`chara` + `ccv3`) → `ccv3` preferred
 - Export V3 JSON → re-import → all V3 fields intact
 - Export V3 PNG (`ccv3`) → re-import → round-trip preserved
-- Export CHARX (.charx) → unzip → verify `card.json` + assets directory layout
-- Import CHARX → `embeded://` URIs resolved → card restored correctly
-- Download with `.charx` extension works
 - `npm run build` passes
 
 ### Phase 3 — Storage & State
@@ -134,7 +129,7 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - [ ] 4.1 Create `src/panels/AssetsPanel.vue`
 - [ ] 4.2 Integrate into `App.vue` editor column (after GreetingsPanel, before LoreBookPanel)
 - [ ] 4.3 Support: file upload (→ base64 data URL / CHARX embeded), type/name/ext editing, preview, validation (exactly one main icon)
-- [ ] 4.4 Connect to CHARX export (assets included in zip)
+- [ ] 4.4 Assets included in export
 
 **Test in this state:**
 - AssetsPanel renders in correct position in editor column
@@ -143,7 +138,6 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - Image preview renders for common formats (png, jpg, gif, webp)
 - Validation: exactly one `icon` with `name === 'main'` — warning on 0 or 2+
 - Remove asset → array shrinks, validation re-runs
-- CHARX export includes assets in `assets/{type}/{name}.{ext}` layout
 - `npm run build` passes
 
 ### Phase 5 — New Panel: Dates
@@ -224,7 +218,7 @@ Each branch merges into `develop-X.Y.Z` with `--no-ff`. Never squash or rebase.
 | Branch | Phase | Key Files | Est. Size |
 |---|---|---|---|
 | `feature/v3-core` | 1 — Types & Schema | `types.ts`, `schemas/card.ts`, `utils/coerce-v2-to-v3.ts` | ~250 lines |
-| `feature/v3-io` | 2 — Import/Export | `utils/png.ts`, `utils/card-io.ts`, `utils/charx.ts` | ~400 lines |
+| `feature/v3-io` | 2 — Import/Export | `utils/png.ts`, `utils/card-io.ts` | ~300 lines |
 | `feature/v3-store` | 3 — Storage & State | `stores/editor.ts`, `storage/db.ts` | ~150 lines |
 | `feature/v3-assets` | 4 — Assets Panel | `panels/AssetsPanel.vue`, `App.vue` | ~300 lines |
 | `feature/v3-panels` | 5-6 — Panel Mods | `InfoPanel.vue`, `GreetingsPanel.vue`, `EntryCard.vue`, `DateInfoPanel.vue`, `Sidebar.vue` | ~400 lines |
@@ -251,4 +245,5 @@ Base branch: `develop-X.Y.Z` (create if not exists).
 - Live2D / 3D / AI model asset viewers — assets with these types are preserved but not rendered
 - CBS `{{user}}` persona system — uses current hardcoded display name
 - Global lorebook stacking — V3 recommends it but this editor only handles character-specific lorebook
-- Full CHARX PNG asset chunk round-trip (`__asset:` URIs) — CHARX is preferred; PNG asset chunks are MAY
+- CHARX format (`.charx` zip) — deferred to a later release; PNG `ccv3` + JSON are the supported embedding methods for now
+- Full CHARX PNG asset chunk round-trip (`__asset:` URIs) — PNG asset chunks are MAY
