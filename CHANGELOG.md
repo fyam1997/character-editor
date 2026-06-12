@@ -8,6 +8,11 @@
 - Create `coerceV2toV3()` utility for backward-compatible V2→V3 upgrade
 - Widen `id` field in lore entries to accept `number | string`
 - Widen `prepareExport`, `assembleApiMessages`, `assembleGeneratePrompt` to accept V2 or V3 cards
+- `png.ts`: prefer `ccv3` chunk over `chara` chunk on PNG import
+- `png.ts`: write `ccv3` chunk for V3 cards on PNG export
+- `card-io.ts`: `importCard()` coerces V2→V3 at import time via `coerceV2toV3()`
+- `card-io.ts`: `prepareExport()` preserves V3 greeting structure (no shift)
+
 
 ### Added
 - Debug checkbox "Reopen Last Session" — when enabled, auto-selects the last

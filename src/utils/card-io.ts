@@ -1,19 +1,10 @@
 import type { CharacterCardV2, CharacterCardV3 } from '../types';
 import { isPng, extractJsonFromPng, embedJsonInPng } from './png';
+import { coerceV2toV3 } from './coerce-v2-to-v3';
 
 export interface ImportResult {
-  json: CharacterCardV2 | CharacterCardV3;
+  json: CharacterCardV3;
   pngBlob?: Blob;
-}
-
-function locateIEND(buf: Uint8Array): number {
-  for (let i = 8; i <= buf.length - 12; i++) {
-    const len = (buf[i] << 24) | (buf[i + 1] << 16) | (buf[i + 2] << 8) | buf[i + 3];
-    if (buf[i + 4] === 73 && buf[i + 5] === 69 && buf[i + 6] === 78 && buf[i + 7] === 68) {
-      return i + 4 + 4 + len + 4;
-    }
-  }
-  return -1;
 }
 
 export function importCard(buf: ArrayBuffer): ImportResult {
@@ -26,10 +17,7 @@ export function importCard(buf: ArrayBuffer): ImportResult {
     if (extracted.json) {
       json = extracted.json as CharacterCardV2 | CharacterCardV3;
     } else {
-      const bytes = new Uint8Array(buf);
-      const iend = locateIEND(bytes);
-      if (iend === -1) throw new Error('Invalid PNG');
-      json = JSON.parse(new TextDecoder().decode(bytes.slice(iend))) as CharacterCardV2 | CharacterCardV3;
+      throw new Error('No card data found in PNG');
     }
   } else {
     json = JSON.parse(new TextDecoder().decode(buf)) as CharacterCardV2 | CharacterCardV3;
@@ -65,22 +53,14 @@ export function importCard(buf: ArrayBuffer): ImportResult {
   }
 
   if (json.spec === 'chara_card_v2') {
-    const f = json.data.first_mes;
-    const g = json.data.alternate_greetings;
-    if (f) {
-      if (!g || g.length === 0) {
-        json.data.alternate_greetings = [f];
-      } else {
-        g[0] = f;
-      }
-    }
+    json = coerceV2toV3(json);
   }
 
   return { json, pngBlob };
 }
 
 export function prepareExport(cardJson: CharacterCardV2 | CharacterCardV3): CharacterCardV2 | CharacterCardV3 {
-  const plain = JSON.parse(JSON.stringify(cardJson));
+  const plain = JSON.parse(JSON.stringify(cardJson)) as CharacterCardV2 | CharacterCardV3;
   if (plain.spec === 'chara_card_v2') {
     const greetings = plain.data.alternate_greetings;
     plain.data.first_mes = greetings[0] ?? '';
@@ -102,8 +82,12 @@ export function exportAsJson(cardJson: CharacterCardV2 | CharacterCardV3): Blob 
   return new Blob([JSON.stringify(cardJson, null, 2)], { type: 'application/json' });
 }
 
-export async function exportAsPng(cardJson: CharacterCardV2 | CharacterCardV3, pngBytes: ArrayBuffer): Promise<Blob> {
-  return embedJsonInPng(pngBytes, cardJson);
+export async function exportAsPng(
+  cardJson: CharacterCardV2 | CharacterCardV3,
+  pngBytes: ArrayBuffer,
+  options?: { embedV2Fallback?: boolean },
+): Promise<Blob> {
+  return embedJsonInPng(pngBytes, cardJson, options);
 }
 
 export function createExportFilename(name: string, ext: string): string {
