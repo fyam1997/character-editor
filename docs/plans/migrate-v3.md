@@ -118,7 +118,7 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 
 - [x] 3.1 Update `src/stores/editor.ts`: V3 type, auto-set `creation_date`, update `modification_date`
 - [x] 3.2 Update `src/storage/db.ts`: widen CardRecord type, no migration needed (coercion in store)
-- [ ] 3.3 Test: load old V2 DB records → auto-coerced to V3 → save → reload
+- [x] 3.3 Test: load old V2 DB records → auto-coerced to V3 → save → reload
 
 **Test in this state:**
 - New card → `creation_date` auto-set to `Math.floor(Date.now() / 1000)` (Unix seconds)
