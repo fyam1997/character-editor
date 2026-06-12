@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clear-merged": "node scripts/clear_merged_branches.js"
   },
   "dependencies": {
     "@vee-validate/zod": "^4.15.1",
