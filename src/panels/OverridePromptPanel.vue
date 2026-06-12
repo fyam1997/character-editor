@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useEditorStore } from '../stores/editor'
-import CollapsibleSection from '../components/CollapsibleSection.vue'
-import MarkdownField from '../components/MarkdownField.vue'
+import { useEditorStore } from '../stores/editor';
+import CollapsibleSection from '../components/CollapsibleSection.vue';
+import MarkdownField from '../components/MarkdownField.vue';
 
-const store = useEditorStore()
+const store = useEditorStore();
 </script>
 
 <template>

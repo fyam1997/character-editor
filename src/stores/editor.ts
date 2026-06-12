@@ -1,278 +1,286 @@
-import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
-import type { CharacterCardV2, CardRecord, ChatSession, ChatMessage } from '../types'
-import { db } from '../storage/db'
+import { defineStore } from 'pinia';
+import { ref, computed, watch } from 'vue';
+import type { CharacterCardV2, CardRecord, ChatSession, ChatMessage } from '../types';
+import { db } from '../storage/db';
 
 function loadApiConfig() {
   try {
-    const saved = localStorage.getItem('apiConfig')
-    if (saved) return JSON.parse(saved)
+    const saved = localStorage.getItem('apiConfig');
+    if (saved) return JSON.parse(saved);
   } catch {}
-  return null
+  return null;
 }
 
 export const useEditorStore = defineStore('editor', () => {
-  const activeCardId = ref<number | null>(null)
-  const cardJson = ref<CharacterCardV2 | null>(null)
-  const cards = ref<CardRecord[]>([])
-  const pngBlob = ref<Blob | undefined>(undefined)
+  const activeCardId = ref<number | null>(null);
+  const cardJson = ref<CharacterCardV2 | null>(null);
+  const cards = ref<CardRecord[]>([]);
+  const pngBlob = ref<Blob | undefined>(undefined);
 
-  const saved = loadApiConfig()
-  const apiConfig = ref(saved ?? {
-    baseUrl: 'https://api.openai.com/v1',
-    apiKey: '',
-    model: 'gpt-4o',
-  })
+  const saved = loadApiConfig();
+  const apiConfig = ref(
+    saved ?? {
+      baseUrl: 'https://api.openai.com/v1',
+      apiKey: '',
+      model: 'gpt-4o',
+    },
+  );
 
-  watch(apiConfig, (v) => {
-    localStorage.setItem('apiConfig', JSON.stringify(v))
-  }, { deep: true })
+  watch(
+    apiConfig,
+    v => {
+      localStorage.setItem('apiConfig', JSON.stringify(v));
+    },
+    { deep: true },
+  );
 
   function loadSystemPrompts() {
     try {
-      const saved = localStorage.getItem('systemPrompts')
-      if (saved) return JSON.parse(saved)
+      const saved = localStorage.getItem('systemPrompts');
+      if (saved) return JSON.parse(saved);
     } catch {}
-    return null
+    return null;
   }
 
-  const savedPrompts = loadSystemPrompts()
-  const systemPrompts = ref(savedPrompts ?? {
-    startChatPrompt: '',
-    mainPrompt: '',
-    auxiliaryPrompt: '',
-    postHistoryPrompt: '',
-  })
+  const savedPrompts = loadSystemPrompts();
+  const systemPrompts = ref(
+    savedPrompts ?? {
+      startChatPrompt: '',
+      mainPrompt: '',
+      auxiliaryPrompt: '',
+      postHistoryPrompt: '',
+    },
+  );
 
-  watch(systemPrompts, (v) => {
-    localStorage.setItem('systemPrompts', JSON.stringify(v))
-  }, { deep: true })
+  watch(
+    systemPrompts,
+    v => {
+      localStorage.setItem('systemPrompts', JSON.stringify(v));
+    },
+    { deep: true },
+  );
 
-  const reopenLastSession = ref(localStorage.getItem('reopenLastSession') === 'true')
-  watch(reopenLastSession, (v) => {
-    localStorage.setItem('reopenLastSession', String(v))
-  })
+  const reopenLastSession = ref(localStorage.getItem('reopenLastSession') === 'true');
+  watch(reopenLastSession, v => {
+    localStorage.setItem('reopenLastSession', String(v));
+  });
 
-  const inspectRequest = ref(localStorage.getItem('inspectRequest') === 'true')
-  watch(inspectRequest, (v) => {
-    localStorage.setItem('inspectRequest', String(v))
-  })
+  const inspectRequest = ref(localStorage.getItem('inspectRequest') === 'true');
+  watch(inspectRequest, v => {
+    localStorage.setItem('inspectRequest', String(v));
+  });
 
-  const mockInspect = ref(localStorage.getItem('mockInspect') === 'true')
-  watch(mockInspect, (v) => {
-    localStorage.setItem('mockInspect', String(v))
-  })
+  const mockInspect = ref(localStorage.getItem('mockInspect') === 'true');
+  watch(mockInspect, v => {
+    localStorage.setItem('mockInspect', String(v));
+  });
 
   function loadMockInspectText(): string {
     try {
-      const saved = localStorage.getItem('mockInspectText')
-      if (saved) return saved
+      const saved = localStorage.getItem('mockInspectText');
+      if (saved) return saved;
     } catch {}
-    return 'Hello there! I am a mock AI response, streaming word by word to simulate a real API call. You can configure this text to test your streaming UI without hitting any external service.'
+    return 'Hello there! I am a mock AI response, streaming word by word to simulate a real API call. You can configure this text to test your streaming UI without hitting any external service.';
   }
 
-  const mockInspectText = ref(loadMockInspectText())
-  watch(mockInspectText, (v) => {
-    localStorage.setItem('mockInspectText', v)
-  })
+  const mockInspectText = ref(loadMockInspectText());
+  watch(mockInspectText, v => {
+    localStorage.setItem('mockInspectText', v);
+  });
 
-  const isActive = computed(() => activeCardId.value !== null)
+  const isActive = computed(() => activeCardId.value !== null);
 
   // chat sessions
-  const sessions = ref<ChatSession[]>([])
-  const activeSessionId = ref<number | null>(null)
+  const sessions = ref<ChatSession[]>([]);
+  const activeSessionId = ref<number | null>(null);
 
-  let saveTimer: ReturnType<typeof setTimeout> | null = null
+  let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
   function toPlain<T>(val: T): T {
-    return JSON.parse(JSON.stringify(val))
+    return JSON.parse(JSON.stringify(val));
   }
 
   async function doSave() {
-    const id = activeCardId.value
-    const json = cardJson.value
-    if (!id || id === -1 || !json) return
-    const existing = await db.cards.get(id)
-    if (!existing) return
-    const plain = toPlain(json)
+    const id = activeCardId.value;
+    const json = cardJson.value;
+    if (!id || id === -1 || !json) return;
+    const existing = await db.cards.get(id);
+    if (!existing) return;
+    const plain = toPlain(json);
     await db.cards.update(id, {
       name: plain.data.name || 'Untitled',
       cardJson: plain,
       pngBlob: pngBlob.value,
       updatedAt: new Date().toISOString(),
-    })
+    });
   }
 
   function scheduleSave() {
-    if (saveTimer) clearTimeout(saveTimer)
+    if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
-      await doSave()
-      await loadCards()
-    }, 500)
+      await doSave();
+      await loadCards();
+    }, 500);
   }
 
   async function flushSave() {
-    if (!saveTimer) return
-    clearTimeout(saveTimer)
-    saveTimer = null
-    await doSave()
-    await loadCards()
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    await doSave();
+    await loadCards();
   }
 
   async function setActiveCard(id: number, json: CharacterCardV2) {
-    activeCardId.value = id
-    cardJson.value = json
-    const record = await db.cards.get(id)
-    pngBlob.value = record?.pngBlob
-    localStorage.setItem('lastActiveCardId', String(id))
+    activeCardId.value = id;
+    cardJson.value = json;
+    const record = await db.cards.get(id);
+    pngBlob.value = record?.pngBlob;
+    localStorage.setItem('lastActiveCardId', String(id));
   }
 
   function getLastActiveCardId(): number | null {
     try {
-      const v = localStorage.getItem('lastActiveCardId')
-      return v ? Number(v) : null
+      const v = localStorage.getItem('lastActiveCardId');
+      return v ? Number(v) : null;
     } catch {
-      return null
+      return null;
     }
   }
 
   function clearActiveCard() {
-    activeCardId.value = null
-    cardJson.value = null
-    pngBlob.value = undefined
+    activeCardId.value = null;
+    cardJson.value = null;
+    pngBlob.value = undefined;
   }
 
   async function loadCards() {
-    cards.value = await db.cards.orderBy('updatedAt').reverse().toArray()
+    cards.value = await db.cards.orderBy('updatedAt').reverse().toArray();
   }
 
   function updatePng(blob: Blob | undefined) {
-    pngBlob.value = blob
-    scheduleSave()
+    pngBlob.value = blob;
+    scheduleSave();
   }
 
-  async function addCard(
-    cardJson_: CharacterCardV2,
-    blob?: Blob
-  ): Promise<number | undefined> {
-    const now = new Date().toISOString()
-    const plain = toPlain(cardJson_)
+  async function addCard(cardJson_: CharacterCardV2, blob?: Blob): Promise<number | undefined> {
+    const now = new Date().toISOString();
+    const plain = toPlain(cardJson_);
     const id = await db.cards.add({
       name: plain.data.name || 'Untitled',
       cardJson: plain,
       pngBlob: blob,
       createdAt: now,
       updatedAt: now,
-    })
-    if (blob) pngBlob.value = blob
-    await loadCards()
-    return id
+    });
+    if (blob) pngBlob.value = blob;
+    await loadCards();
+    return id;
   }
 
   async function getCard(id: number): Promise<CardRecord | undefined> {
-    return db.cards.get(id)
+    return db.cards.get(id);
   }
 
   async function deleteCard(id: number) {
-    await db.cards.delete(id)
-    await db.chatSessions.where('cardId').equals(id).delete()
+    await db.cards.delete(id);
+    await db.chatSessions.where('cardId').equals(id).delete();
     if (activeCardId.value === id) {
-      clearActiveCard()
+      clearActiveCard();
     }
-    await loadCards()
-    await loadSessionsForCard()
+    await loadCards();
+    await loadSessionsForCard();
   }
 
   // --- chat sessions ---
 
   async function loadSessionsForCard() {
-    const cardId = activeCardId.value
+    const cardId = activeCardId.value;
     if (!cardId) {
-      sessions.value = []
-      return
+      sessions.value = [];
+      return;
     }
     sessions.value = await db.chatSessions
-      .where('cardId').equals(cardId)
+      .where('cardId')
+      .equals(cardId)
       .reverse()
-      .sortBy('updatedAt')
+      .sortBy('updatedAt');
   }
 
   async function createSession(greeting: string) {
-    const cardId = activeCardId.value
-    if (!cardId) return
-    const now = new Date().toISOString()
+    const cardId = activeCardId.value;
+    if (!cardId) return;
+    const now = new Date().toISOString();
     const id = await db.chatSessions.add({
       cardId,
       name: new Date().toLocaleString(),
       createdAt: now,
       updatedAt: now,
-      messages: [
-        { role: 'assistant' as const, content: greeting },
-      ],
-    })
-    await loadSessionsForCard()
+      messages: [{ role: 'assistant' as const, content: greeting }],
+    });
+    await loadSessionsForCard();
     if (id != null) {
-      await selectSession(id)
+      await selectSession(id);
     }
   }
 
   async function selectSession(id: number) {
-    activeSessionId.value = id
+    activeSessionId.value = id;
     if (activeCardId.value != null) {
-      const map = JSON.parse(localStorage.getItem('lastSessionByCard') || '{}')
-      map[activeCardId.value] = id
-      localStorage.setItem('lastSessionByCard', JSON.stringify(map))
+      const map = JSON.parse(localStorage.getItem('lastSessionByCard') || '{}');
+      map[activeCardId.value] = id;
+      localStorage.setItem('lastSessionByCard', JSON.stringify(map));
     }
   }
 
   function getLastSessionId(cardId: number): number | null {
     try {
-      const map = JSON.parse(localStorage.getItem('lastSessionByCard') || '{}')
-      return map[cardId] ?? null
+      const map = JSON.parse(localStorage.getItem('lastSessionByCard') || '{}');
+      return map[cardId] ?? null;
     } catch {
-      return null
+      return null;
     }
   }
 
   async function deleteSession(id: number) {
-    await db.chatSessions.delete(id)
+    await db.chatSessions.delete(id);
     if (activeSessionId.value === id) {
-      activeSessionId.value = null
+      activeSessionId.value = null;
     }
-    await loadSessionsForCard()
+    await loadSessionsForCard();
   }
 
   async function addMessage(msg: ChatMessage) {
-    const sid = activeSessionId.value
-    if (sid == null) return
-    const session = await db.chatSessions.get(sid) as ChatSession | undefined
-    if (!session) return
-    session.messages.push(msg)
-    session.updatedAt = new Date().toISOString()
-    await db.chatSessions.put(session)
-    const idx = sessions.value.findIndex((s) => s.id === sid)
-    if (idx !== -1) sessions.value[idx] = session
+    const sid = activeSessionId.value;
+    if (sid == null) return;
+    const session = (await db.chatSessions.get(sid)) as ChatSession | undefined;
+    if (!session) return;
+    session.messages.push(msg);
+    session.updatedAt = new Date().toISOString();
+    await db.chatSessions.put(session);
+    const idx = sessions.value.findIndex(s => s.id === sid);
+    if (idx !== -1) sessions.value[idx] = session;
   }
 
   async function updateLastAssistant(content: string) {
-    const sid = activeSessionId.value
-    if (sid == null) return
-    const session = await db.chatSessions.get(sid) as ChatSession | undefined
-    if (!session || session.messages.length === 0) return
-    const last = session.messages[session.messages.length - 1]
+    const sid = activeSessionId.value;
+    if (sid == null) return;
+    const session = (await db.chatSessions.get(sid)) as ChatSession | undefined;
+    if (!session || session.messages.length === 0) return;
+    const last = session.messages[session.messages.length - 1];
     if (last.role === 'assistant') {
-      last.content = content
-      session.updatedAt = new Date().toISOString()
-      await db.chatSessions.put(session)
-      const idx = sessions.value.findIndex((s) => s.id === sid)
-      if (idx !== -1) sessions.value[idx] = session
+      last.content = content;
+      session.updatedAt = new Date().toISOString();
+      await db.chatSessions.put(session);
+      const idx = sessions.value.findIndex(s => s.id === sid);
+      if (idx !== -1) sessions.value[idx] = session;
     }
   }
 
   const activeMessages = computed<ChatMessage[]>(() => {
-    const session = sessions.value.find((s) => s.id === activeSessionId.value)
-    return session?.messages ?? []
-  })
+    const session = sessions.value.find(s => s.id === activeSessionId.value);
+    return session?.messages ?? [];
+  });
 
   return {
     activeCardId,
@@ -306,5 +314,5 @@ export const useEditorStore = defineStore('editor', () => {
     addMessage,
     updateLastAssistant,
     activeMessages,
-  }
-})
+  };
+});

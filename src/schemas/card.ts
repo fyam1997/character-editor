@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const characterBookEntrySchema = z.object({
   keys: z.array(z.string()).default([]),
@@ -15,7 +15,7 @@ export const characterBookEntrySchema = z.object({
   secondary_keys: z.array(z.string()).optional(),
   constant: z.boolean().optional(),
   position: z.enum(['before_char', 'after_char']).optional(),
-})
+});
 
 export const characterBookSchema = z.object({
   name: z.string().optional(),
@@ -25,7 +25,7 @@ export const characterBookSchema = z.object({
   recursive_scanning: z.boolean().optional(),
   extensions: z.record(z.unknown()).default({}),
   entries: z.array(characterBookEntrySchema).default([]),
-})
+});
 
 export const cardDataSchema = z.object({
   name: z.string().default(''),
@@ -43,10 +43,10 @@ export const cardDataSchema = z.object({
   creator: z.string().default(''),
   character_version: z.string().default(''),
   extensions: z.record(z.unknown()).default({}),
-})
+});
 
 export const cardSchema = z.object({
   spec: z.literal('chara_card_v2'),
   spec_version: z.literal('2.0'),
   data: cardDataSchema,
-})
+});

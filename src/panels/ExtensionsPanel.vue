@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useEditorStore } from '../stores/editor'
-import CollapsibleSection from '../components/CollapsibleSection.vue'
-import ExtensionsTable from '../components/ExtensionsTable.vue'
+import { computed } from 'vue';
+import { useEditorStore } from '../stores/editor';
+import CollapsibleSection from '../components/CollapsibleSection.vue';
+import ExtensionsTable from '../components/ExtensionsTable.vue';
 
-const store = useEditorStore()
+const store = useEditorStore();
 
 const extensions = computed({
   get: () => store.cardJson?.data.extensions ?? {},
-  set: (val) => {
+  set: val => {
     if (store.cardJson) {
-      store.cardJson.data.extensions = val
+      store.cardJson.data.extensions = val;
     }
   },
-})
+});
 </script>
 
 <template>
