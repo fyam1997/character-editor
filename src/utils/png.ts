@@ -29,6 +29,7 @@ export function extractJsonFromPng(buf: ArrayBuffer): {
     return { json: JSON.parse(decoded), pngBytes: buf };
   }
 
+  // Fallback for v2 card
   encoded = getMetadata(bytes, 'chara');
   if (encoded) {
     const decoded = Base64.decode(encoded);
