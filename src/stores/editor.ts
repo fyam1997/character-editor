@@ -124,6 +124,16 @@ export const useEditorStore = defineStore('editor', () => {
     cardJson.value = json
     const record = await db.cards.get(id)
     pngBlob.value = record?.pngBlob
+    localStorage.setItem('lastActiveCardId', String(id))
+  }
+
+  function getLastActiveCardId(): number | null {
+    try {
+      const v = localStorage.getItem('lastActiveCardId')
+      return v ? Number(v) : null
+    } catch {
+      return null
+    }
   }
 
   function clearActiveCard() {
@@ -276,6 +286,7 @@ export const useEditorStore = defineStore('editor', () => {
     mockInspectText,
     reopenLastSession,
     getLastSessionId,
+    getLastActiveCardId,
     isActive,
     sessions,
     activeSessionId,

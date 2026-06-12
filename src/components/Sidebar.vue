@@ -8,7 +8,18 @@ const store = useEditorStore()
 
 const appVersion = __APP_VERSION__
 
-onMounted(() => store.loadCards())
+onMounted(async () => {
+  await store.loadCards()
+  if (store.reopenLastSession) {
+    const lastId = store.getLastActiveCardId()
+    if (lastId != null) {
+      const card = store.cards.find(c => c.id === lastId)
+      if (card) {
+        await store.setActiveCard(lastId, card.cardJson)
+      }
+    }
+  }
+})
 
 async function handleImport() {
   const input = document.createElement('input')
