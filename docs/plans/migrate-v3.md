@@ -22,7 +22,7 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 | File | Change |
 |---|---|
 | `src/utils/png.ts` | Add read/write for `ccv3` chunk (same base64 encoding as `chara`). On import, prefer `ccv3` over `chara`. Optionally write both chunks for backward compat. |
-| `src/utils/card-io.ts` | **`importCard()`**: detect V3 by checking `spec === 'chara_card_v3'`. If V2 detected (`'chara_card_v2'`), upgrade: fill `group_only_greetings: []`, `assets: undefined`, etc. Use parsed float of `spec_version` to decide compat. **`prepareExport()`**: no longer shift `alternate_greetings[0]` into `first_mes` for V3 (V3 keeps them in parallel); only do this for V2 export. **New `exportAsCharx()`**: zip `card.json` + assets with `embeded://` URIs, directory layout per spec. **Download**: add `.charx` option. |
+| `src/utils/card-io.ts` | **`importCard()`**: detect V3 by checking `spec === 'chara_card_v3'`. If V2 detected (`'chara_card_v2'`), upgrade: fill `group_only_greetings: []`, `assets: undefined`, etc. Use parsed float of `spec_version` to decide compat. **`prepareExport()`**: no longer shift `alternate_greetings[0]` into `first_mes` for V3 (V3 keeps them in parallel); only do this for V2 export. ~~**New `exportAsCharx()`**: zip `card.json` + assets with `embeded://` URIs, directory layout per spec. **Download**: add `.charx` option.~~ *(deferred)* |
 | `src/utils/coerce-v2-to-v3.ts` | **New** — pure function `coerceV2toV3(v2: CharacterCardV2): CharacterCardV3`. Maps all fields, fills defaults for new fields. |
 
 ### 3. Storage Layer
@@ -47,7 +47,7 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 
 | Panel | Description |
 |---|---|
-| `AssetsPanel.vue` | Manage `assets[]` array. Each row: type (icon/background/emotion/user_icon), name, URI (file picker → base64 data URL or CHARX embeded://), ext. Validation: exactly one `icon` with `name === 'main'`. Show preview for images. |
+| `AssetsPanel.vue` | Manage `assets[]` array. Each row: type (icon/background/emotion/user_icon), name, URI (file picker → base64 data URL), ext. Validation: exactly one `icon` with `name === 'main'`. Show preview for images. ~~CHARX `embeded://` URI support deferred.~~ |
 | `DateInfoPanel.vue` | Display-only panel showing `creation_date` and `modification_date` (formatted from Unix timestamps). Auto-generated, not user-editable. |
 
 ### 5. Prompt Assembly — Lorebook Changes
@@ -70,17 +70,19 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 | Import V2 PNG (`chara` chunk) | Coerce to V3 in-memory, display as V3, save as V3. |
 | Import V3 PNG (`ccv3` chunk) | Use directly. If both `chara` + `ccv3` exist, prefer `ccv3`. |
 | Import V2 JSON (`spec: 'chara_card_v2'`) | Coerce to V3 on import. |
-| Export | User chooses format: V3 PNG (`ccv3`), V3 JSON, or V3 CHARX. Optionally export as V2 (`chara` chunk) for compatibility. |
+| Export | User chooses format: V3 PNG (`ccv3`) or V3 JSON. Optionally export as V2 (`chara` chunk) for compatibility. ~~CHARX format deferred.~~ |
 | Old DB records | Stored V2 JSON is read, coerced to V3 in store layer. |
 
-### 8. Asset System (CHARX Support)
+### 8. Asset System (Deferred)
+
+> CHARX format (`.charx` zip) and `embeded://` URI resolution are deferred. Assets use base64 data URLs for now. See Out of Scope.
 
 | Concern | Detail |
 |---|---|
-| URI resolution | Implement resolver for `embeded://` (zip entries), `ccdefault:` (fallback to PNG image or default icon), base64 data URLs, HTTP/HTTPS. |
-| CHARX export | Use `jszip` (already available?) to create zip with `card.json` at root, assets in `assets/{type}/{category}/`. |
-| CHARX import | Read zip, extract `card.json`, parse `embeded://` URIs from assets. |
-| PNG/APNG asset chunks | Support `__asset:` URI from `chara-ext-asset_:{path}` tEXt chunks (secondary; CHARX preferred per spec). |
+| URI resolution | Implement resolver for `ccdefault:` (fallback to PNG image or default icon), base64 data URLs, HTTP/HTTPS. ~~`embeded://` (zip entries) deferred.~~ |
+| CHARX export | ~~Use `jszip` to create zip with `card.json` at root, assets in `assets/{type}/{category}/`. Deferred.~~ |
+| CHARX import | ~~Read zip, extract `card.json`, parse `embeded://` URIs from assets. Deferred.~~ |
+| PNG/APNG asset chunks | Support `__asset:` URI from `chara-ext-asset_:{path}` tEXt chunks (secondary; CHARX preferred per spec). Deferred. |
 
 ## Tasks
 
@@ -128,7 +130,7 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 
 - [ ] 4.1 Create `src/panels/AssetsPanel.vue`
 - [ ] 4.2 Integrate into `App.vue` editor column (after GreetingsPanel, before LoreBookPanel)
-- [ ] 4.3 Support: file upload (→ base64 data URL / CHARX embeded), type/name/ext editing, preview, validation (exactly one main icon)
+- [ ] 4.3 Support: file upload (→ base64 data URL), type/name/ext editing, preview, validation (exactly one main icon) ~~CHARX `embeded://` deferred.~~
 - [ ] 4.4 Assets included in export
 
 **Test in this state:**
