@@ -91,6 +91,13 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - [ ] 1.3 Create `src/utils/coerce-v2-to-v3.ts`: pure upgrade function
 - [ ] 1.4 Run type-check: `npm run build` passes
 
+**Test in this state:**
+- `npm run build` passes (vue-tsc + vite build, 0 errors)
+- New card created via Sidebar has `spec: 'chara_card_v3'`, `spec_version: '3.0'`, `group_only_greetings: []`
+- Import V2 PNG/JSON → coerced to V3 in store layer (`setActiveCard` calls `coerceV2toV3`)
+- Old V2 DB records load and coerce without error
+- All existing UI panels render without type errors
+
 ### Phase 2 — Import / Export Engine
 
 - [ ] 2.1 Update `src/utils/png.ts`: `ccv3` chunk read/write; prefer `ccv3` over `chara`
@@ -99,11 +106,28 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - [ ] 2.4 Update `downloadBlob` / `createExportFilename` to support `.charx`
 - [ ] 2.5 Test round-trip: import V2 PNG → edit → export V3 PNG → re-import
 
+**Test in this state:**
+- Import V2 PNG (`chara` chunk) → coerced to V3, displayed as V3, saved as V3
+- Import V3 PNG (`ccv3` chunk) → used directly, no coercion
+- Both chunks present (`chara` + `ccv3`) → `ccv3` preferred
+- Export V3 JSON → re-import → all V3 fields intact
+- Export V3 PNG (`ccv3`) → re-import → round-trip preserved
+- Export CHARX (.charx) → unzip → verify `card.json` + assets directory layout
+- Import CHARX → `embeded://` URIs resolved → card restored correctly
+- Download with `.charx` extension works
+- `npm run build` passes
+
 ### Phase 3 — Storage & State
 
 - [ ] 3.1 Update `src/stores/editor.ts`: V3 type, auto-set `creation_date`, update `modification_date`
 - [ ] 3.2 Update `src/storage/db.ts`: widen CardRecord type, no migration needed (coercion in store)
 - [ ] 3.3 Test: load old V2 DB records → auto-coerced to V3 → save → reload
+
+**Test in this state:**
+- New card → `creation_date` auto-set to `Math.floor(Date.now() / 1000)` (Unix seconds)
+- Save card → `modification_date` updates to current timestamp
+- Load old V2 DB record → coerced to V3 → save → reload → all data intact, no loss
+- `npm run build` passes
 
 ### Phase 4 — New Panel: Assets
 
@@ -112,11 +136,29 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - [ ] 4.3 Support: file upload (→ base64 data URL / CHARX embeded), type/name/ext editing, preview, validation (exactly one main icon)
 - [ ] 4.4 Connect to CHARX export (assets included in zip)
 
+**Test in this state:**
+- AssetsPanel renders in correct position in editor column
+- File picker → image becomes base64 data URL in `uri` field
+- Type dropdown (icon/background/emotion/user_icon), name, ext fields editable
+- Image preview renders for common formats (png, jpg, gif, webp)
+- Validation: exactly one `icon` with `name === 'main'` — warning on 0 or 2+
+- Remove asset → array shrinks, validation re-runs
+- CHARX export includes assets in `assets/{type}/{name}.{ext}` layout
+- `npm run build` passes
+
 ### Phase 5 — New Panel: Dates
 
 - [ ] 5.1 Create `src/panels/DateInfoPanel.vue`
 - [ ] 5.2 Show formatted creation/modification dates, read-only
 - [ ] 5.3 Integrate into App.vue (bottom of editor column or collapsible)
+
+**Test in this state:**
+- DateInfoPanel visible in editor column (bottom or collapsible)
+- `creation_date` (Unix seconds) → formatted as human-readable date (e.g. "Jun 12, 2026, 3:45 PM")
+- `modification_date` similarly formatted
+- No editable inputs — display-only
+- New card without dates → shows "Not set" placeholder
+- `npm run build` passes
 
 ### Phase 6 — Modified Panels
 
@@ -125,16 +167,47 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - [ ] 6.3 `EntryCard.vue`: add `use_regex` toggle; promote `constant`; widen `id` input
 - [ ] 6.4 Sidebar `newCard()`: create V3 structure
 
+**Test in this state:**
+- **InfoPanel**: nickname input between name and tags → sets `data.nickname`
+- **InfoPanel**: `creator_notes_multilingual` editor with language selector → stores as `Record<lang, string>`
+- **InfoPanel**: `source` array displayed as chip/list; URLs open in new tab
+- **GreetingsPanel**: `group_only_greetings` section — add/edit/remove works
+- **GreetingsPanel**: V3 export preserves `alternate_greetings` in parallel with `first_mes` (no shift)
+- **EntryCard**: `use_regex` checkbox toggles `entry.use_regex`
+- **EntryCard**: `constant` is now in basic section (not hidden in advanced)
+- **EntryCard**: `id` input accepts both `number` and `string` values
+- **Sidebar**: `newCard()` sets `creation_date: Math.floor(Date.now() / 1000)`
+- `npm run build` passes
+
 ### Phase 7 — Lorebook Decorators Engine
 
 - [ ] 7.1 Create `src/utils/lore-decorators.ts`: parse `@@` / `@@@` decorators from content
 - [ ] 7.2 Implement all standard decorators (activation conditions, depth, role, position, etc.)
 - [ ] 7.3 Create `src/utils/lore-decorators.test.ts`: unit tests for each decorator
 
+**Test in this state:**
+- `npm run test` (vitest or jest) — all decorator unit tests pass
+- `@@activate_only_after`, `@@depth`, `@@role`, `@@position`, etc. parsed correctly from entry `content`
+- `@@@fallback` decorators resolve when standard decorator undefined
+- Decorator lines stripped before inserting content into prompt
+- Invalid/malformed decorators → gracefully ignored (no crash)
+- Edge cases: multiple decorators same line, content with no decorators, all possible decorators combined
+- `npm run build` passes
+
 ### Phase 8 — Prompt Assembly & CBS
 
 - [ ] 8.1 Update `src/utils/prompt-assembly.ts`: `nickname` → `{{char}}`, use_regex matching, decorator evaluation, CBS resolution (`{{random}}`, `{{pick}}`, `{{roll}}`, etc.)
 - [ ] 8.2 Update `src/utils/generate.ts`: reflect new fields in AI generation context
+
+**Test in this state:**
+- `{{char}}` / `<char>` / `<bot>` → resolved to `data.nickname` if present, else `data.name`
+- Lore entry with `use_regex: true` → matched using `new RegExp(key, flags)` instead of `text.includes()`
+- `case_sensitive` respected in regex flags (no `i` flag when `case_sensitive: true`)
+- Decorator directives from lore content evaluated during `getLoreEntries` / prompt assembly
+- CBS tokens resolved: `{{random:option1|option2}}`, `{{pick:list|items}}`, `{{roll:1d6}}`, etc.
+- CBS comments `{{// comment}}` stripped from output
+- Generate dialog includes `nickname`, `group_only_greetings` in AI context
+- `npm run build` passes
 
 ### Phase 9 — Polish & QA
 
