@@ -30,11 +30,13 @@ const availableLangs = computed(() => {
 });
 
 function addLanguage() {
-  if (!store.cardJson || !newLangCode.value.trim()) return;
+  if (!store.cardJson) return;
+  const code = newLangCode.value.trim() || selectedLang.value;
+  if (!code) return;
   if (!store.cardJson.data.creator_notes_multilingual) {
     store.cardJson.data.creator_notes_multilingual = {};
   }
-  store.cardJson.data.creator_notes_multilingual[newLangCode.value.trim()] = '';
+  store.cardJson.data.creator_notes_multilingual[code] = '';
   selectedLang.value = newLangCode.value.trim();
   newLangCode.value = '';
   showAddLang.value = false;
