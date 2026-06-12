@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import SystemConfig from './components/SystemConfig.vue';
 import GenerateDialog from './components/GenerateDialog.vue';
+import Dialogs from './components/Dialogs.vue';
 import InfoPanel from './panels/InfoPanel.vue';
 import CharacterPanel from './panels/CharacterPanel.vue';
 import OverridePromptPanel from './panels/OverridePromptPanel.vue';
@@ -159,4 +160,5 @@ async function handleExport(type: 'json' | 'png') {
     @close="closeGenerate"
     @result="applyGenerateResult"
   />
+  <Dialogs />
 </template>

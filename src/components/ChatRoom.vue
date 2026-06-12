@@ -6,7 +6,7 @@ import { assembleApiMessages } from '../utils/prompt-assembly';
 import type { ChatMessage, ChatSession } from '../types';
 import { db } from '../storage/db';
 import MarkdownField from './MarkdownField.vue';
-import InspectDialog from './InspectDialog.vue';
+import { useDialogStackStore } from '../stores/dialog-stack';
 
 const store = useEditorStore();
 const chatInput = ref('');
@@ -15,7 +15,7 @@ const sending = ref(false);
 const abortController = ref<AbortController | null>(null);
 const chatEl = ref<HTMLElement | null>(null);
 const showSessions = ref(false);
-const inspectPayload = ref('');
+const stack = useDialogStackStore();
 
 const messageKeys = ref<number[]>([]);
 let nextMsgKey = 0;
@@ -183,11 +183,14 @@ async function sendMessage() {
     session.messages,
   ).messages;
   if (store.inspectRequest) {
-    inspectPayload.value = JSON.stringify(
-      { model: store.apiConfig.model, messages: apiMessages, stream: true },
-      null,
-      2,
-    );
+    stack.show('inspect', {
+      payload: JSON.stringify(
+        { model: store.apiConfig.model, messages: apiMessages, stream: true },
+        null,
+        2,
+      ),
+      onConfirm: handleInspectConfirm,
+    });
     return;
   }
   if (store.mockInspect) {
@@ -244,11 +247,14 @@ async function regenerateMessage(assembledIdx: number) {
     session.messages,
   ).messages;
   if (store.inspectRequest) {
-    inspectPayload.value = JSON.stringify(
-      { model: store.apiConfig.model, messages: apiMessages, stream: true },
-      null,
-      2,
-    );
+    stack.show('inspect', {
+      payload: JSON.stringify(
+        { model: store.apiConfig.model, messages: apiMessages, stream: true },
+        null,
+        2,
+      ),
+      onConfirm: handleInspectConfirm,
+    });
     return;
   }
   if (store.mockInspect) {
@@ -264,7 +270,6 @@ async function handleInspectConfirm(payload: string) {
     const parsed = JSON.parse(payload);
     const messages = parsed.messages as ChatMessage[];
     if (!Array.isArray(messages)) return;
-    inspectPayload.value = '';
     if (store.mockInspect) {
       abortController.value = new AbortController();
       await mockStreamResponse();
@@ -427,12 +432,6 @@ function scrollToBottom() {
       </button>
     </div>
   </div>
-  <InspectDialog
-    :visible="!!inspectPayload"
-    :payload="inspectPayload"
-    @close="inspectPayload = ''"
-    @confirm="handleInspectConfirm"
-  />
 </template>
 
 <style scoped>

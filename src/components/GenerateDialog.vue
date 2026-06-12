@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useEditorStore } from '../stores/editor';
-import { streamChat, mockStreamText } from '../utils/api';
+import { mockStreamText, streamChat } from '../utils/api';
 import type { ChatMessage } from '../types';
+import type { GenerateField, GenerateMode } from '../utils/generate';
 import {
   assembleGeneratePrompt,
-  getMatchingLoreIndices,
+  clearPromptMemory,
   getDefaultPrompt,
+  getMatchingLoreIndices,
   loadPromptMemory,
   savePromptMemory,
-  clearPromptMemory,
 } from '../utils/generate';
-import type { GenerateField, GenerateMode } from '../utils/generate';
 import MarkdownField from './MarkdownField.vue';
-import InspectDialog from './InspectDialog.vue';
+import { useDialogStackStore } from '../stores/dialog-stack';
+import { useDialogEscape } from '../utils/use-dialog-escape';
 
 const props = defineProps<{
   visible: boolean;
@@ -53,11 +54,13 @@ const greetingSelections = ref<boolean[]>([]);
 const loreSelections = ref<boolean[]>([]);
 const userPrompt = ref('');
 const theme = ref('');
-const inspectPayload = ref('');
+
 const resultText = ref('');
 const generating = ref(false);
 const error = ref('');
 const done = ref(false);
+
+const stack = useDialogStackStore();
 
 const greetings = computed(() => store.cardJson?.data.alternate_greetings ?? []);
 const loreEntries = computed(() => store.cardJson?.data.character_book?.entries ?? []);
@@ -173,14 +176,13 @@ watch(userPrompt, val => {
   savePromptMemory(props.field, mode.value, val);
 });
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && props.visible && !generating.value && !inspectPayload.value) {
-    handleClose();
-  }
-}
-
-onMounted(() => window.addEventListener('keydown', onKeydown));
-onUnmounted(() => window.removeEventListener('keydown', onKeydown));
+useDialogEscape(
+  'GenerateDialog',
+  () => props.visible,
+  () => {
+    if (!generating.value) handleClose();
+  },
+);
 
 function handleReset() {
   let keys: string | undefined;
@@ -227,11 +229,14 @@ async function handleGenerate() {
   );
 
   if (store.inspectRequest) {
-    inspectPayload.value = JSON.stringify(
-      { model: store.apiConfig.model, messages, stream: true },
-      null,
-      2,
-    );
+    stack.show('inspect', {
+      payload: JSON.stringify(
+        { model: store.apiConfig.model, messages, stream: true },
+        null,
+        2,
+      ),
+      onConfirm: handleInspectConfirm,
+    });
     generating.value = false;
     return;
   }
@@ -289,7 +294,6 @@ async function handleInspectConfirm(payload: string) {
     const parsed = JSON.parse(payload);
     const messages = parsed.messages as ChatMessage[];
     if (!Array.isArray(messages)) return;
-    inspectPayload.value = '';
     generating.value = true;
     error.value = '';
     resultText.value = '';
@@ -514,12 +518,6 @@ function handleClose() {
       </div>
     </div>
   </Teleport>
-  <InspectDialog
-    :visible="!!inspectPayload"
-    :payload="inspectPayload"
-    @close="inspectPayload = ''"
-    @confirm="handleInspectConfirm"
-  />
 </template>
 
 <style scoped>
