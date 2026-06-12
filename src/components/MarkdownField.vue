@@ -29,92 +29,111 @@ const rendered = computed(() => {
   return marked(text, { breaks: true }) as string
 })
 
+function getCaretRange(event: MouseEvent): Range | null {
+  let range = document.caretRangeFromPoint(event.clientX, event.clientY)
+  if (!range) {
+    const pos = document.caretPositionFromPoint(event.clientX, event.clientY)
+    if (pos) {
+      range = document.createRange()
+      range.setStart(pos.offsetNode, pos.offset)
+      range.collapse(true)
+    }
+  }
+  return range
+}
+
+function treeWalkerRowCol(container: HTMLElement, target: Node, targetOff: number): [number, number] {
+  const blockTags = new Set(['P','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE','DIV','HR','TD','TH'])
+  let row = 0
+  let col = 0
+  let inNewBlock = true
+  let afterBr = false
+
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ALL)
+  let node: Node | null = walker.currentNode
+  while (node) {
+    if (node === container) { node = walker.nextNode(); continue }
+    const isTarget = node === target
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const tag = (node as Element).tagName
+      if (tag === 'BR') { row++; col = 0; afterBr = true }
+      else if (blockTags.has(tag)) { inNewBlock = true; col = 0; afterBr = false }
+    }
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = (node as Text).data
+      if (text.trim() === '') { node = walker.nextNode(); continue }
+      const parts = text.split('\n')
+      let effectiveLines = parts.length
+      if (effectiveLines > 1 && parts[effectiveLines - 1] === '') effectiveLines--
+
+      if (isTarget) {
+        let remaining = targetOff
+        let lineIdx = 0
+        while (lineIdx < effectiveLines && remaining > parts[lineIdx].length) {
+          remaining -= parts[lineIdx].length + 1
+          lineIdx++
+        }
+        row += lineIdx
+        col = remaining
+      } else if (inNewBlock && effectiveLines > 0 && parts.slice(0, effectiveLines).some(p => p.length > 0)) {
+        row += effectiveLines
+        col = parts[effectiveLines - 1].length
+        inNewBlock = false; afterBr = false
+      } else if (afterBr) {
+        row += effectiveLines - 1
+        col = parts[effectiveLines - 1].length
+        afterBr = false
+      } else if (effectiveLines > 1) {
+        row += effectiveLines - 1
+        col = parts[effectiveLines - 1].length
+      } else {
+        col += text.length
+      }
+    }
+    if (isTarget) break
+    node = walker.nextNode()
+  }
+  return [row, col]
+}
+
+function visibleToSourceRow(row: number): number {
+  const sourceLines = props.modelValue.split('\n')
+  const visible: number[] = []
+  for (let i = 0; i < sourceLines.length; i++) {
+    const l = sourceLines[i]
+    if (/^```/.test(l) || /^\s*$/.test(l)) continue
+    if (/^(?:[-*_]\s*){3,}$/.test(l.trim())) continue
+    visible.push(i)
+  }
+  return visible[row] ?? Math.min(row, sourceLines.length - 1)
+}
+
+function sourceOffset(row: number, col: number): number {
+  const sourceLines = props.modelValue.split('\n')
+  const sourceLine = sourceLines[row] || ''
+
+  const prefixMatch = sourceLine.match(/^(\s*#{1,6}\s+|\s*[-*]\s+|\s*\d+\.\s+|\s*>\s?)/)
+  const prefixLen = prefixMatch ? prefixMatch[0].length : 0
+  const adjustedCol = col + prefixLen
+
+  let pos = 0
+  for (let i = 0; i < row; i++) {
+    pos += sourceLines[i].length + 1
+  }
+  pos += Math.min(adjustedCol, sourceLine.length)
+  return Math.min(pos, props.modelValue.length)
+}
+
 function startEdit(event: MouseEvent) {
   let clickPos = -1
 
   if (contentEl.value) {
     try {
-      let range: Range | null = document.caretRangeFromPoint(event.clientX, event.clientY)
-      if (!range) {
-        const pos = document.caretPositionFromPoint(event.clientX, event.clientY)
-        if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); range.collapse(true) }
-      }
+      const range = getCaretRange(event)
       if (range && contentEl.value.contains(range.startContainer)) {
-        const blockTags = new Set(['P','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE','DIV','HR','TD','TH'])
-        const target = range.startContainer
-        const targetOff = range.startOffset
-
-        let row = 0
-        let col = 0
-        let inNewBlock = true
-        let afterBr = false
-
-        const walker = document.createTreeWalker(contentEl.value, NodeFilter.SHOW_ALL)
-        let node: Node | null = walker.currentNode
-        while (node) {
-          if (node === contentEl.value) { node = walker.nextNode(); continue }
-          const isTarget = node === target
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            const tag = (node as Element).tagName
-            if (tag === 'BR') { row++; col = 0; afterBr = true }
-            else if (blockTags.has(tag)) { inNewBlock = true; col = 0; afterBr = false }
-          }
-          if (node.nodeType === Node.TEXT_NODE) {
-            const text = (node as Text).data
-            if (text.trim() === '') { node = walker.nextNode(); continue }
-            const parts = text.split('\n')
-            let effectiveLines = parts.length
-            if (effectiveLines > 1 && parts[effectiveLines - 1] === '') effectiveLines--
-
-            if (isTarget) {
-              let remaining = targetOff
-              let lineIdx = 0
-              while (lineIdx < effectiveLines && remaining > parts[lineIdx].length) {
-                remaining -= parts[lineIdx].length + 1
-                lineIdx++
-              }
-              row += lineIdx
-              col = remaining
-            } else if (inNewBlock && effectiveLines > 0 && parts.slice(0, effectiveLines).some(p => p.length > 0)) {
-              row += effectiveLines
-              col = parts[effectiveLines - 1].length
-              inNewBlock = false; afterBr = false
-            } else if (afterBr) {
-              row += effectiveLines - 1
-              col = parts[effectiveLines - 1].length
-              afterBr = false
-            } else if (effectiveLines > 1) {
-              row += effectiveLines - 1
-              col = parts[effectiveLines - 1].length
-            } else {
-              col += text.length
-            }
-          }
-          if (isTarget) break
-          node = walker.nextNode()
-        }
-
-        const sourceLines = props.modelValue.split('\n')
-        const visibleToSource: number[] = []
-        for (let i = 0; i < sourceLines.length; i++) {
-          const l = sourceLines[i]
-          if (/^```/.test(l) || /^\s*$/.test(l)) continue
-          if (/^(?:[-*_]\s*){3,}$/.test(l.trim())) continue
-          visibleToSource.push(i)
-        }
-        const targetRow = visibleToSource[row] ?? Math.min(row, sourceLines.length - 1)
-        const sourceLine = sourceLines[targetRow] || ''
-
-        const prefixMatch = sourceLine.match(/^(\s*#{1,6}\s+|\s*[-*]\s+|\s*\d+\.\s+|\s*>\s?)/)
-        const prefixLen = prefixMatch ? prefixMatch[0].length : 0
-        const adjustedCol = col + prefixLen
-
-        let pos = 0
-        for (let i = 0; i < targetRow; i++) {
-          pos += sourceLines[i].length + 1
-        }
-        pos += Math.min(adjustedCol, sourceLine.length)
-        clickPos = Math.min(pos, props.modelValue.length)
+        const [row, col] = treeWalkerRowCol(contentEl.value, range.startContainer, range.startOffset)
+        const sourceRow = visibleToSourceRow(row)
+        clickPos = sourceOffset(sourceRow, col)
       }
     } catch { /* fall through */ }
   }
