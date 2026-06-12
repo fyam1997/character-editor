@@ -4,6 +4,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 interface DialogData {
   payload?: string;
   onConfirm?: (payload: string) => void;
+  onClose?: () => void;
 }
 
 export const useDialogStackStore = defineStore('dialogStack', () => {
@@ -41,6 +42,8 @@ export const useDialogStackStore = defineStore('dialogStack', () => {
     if (e.key === 'Escape') {
       const name = top();
       if (name) {
+        const d = data.value[name];
+        d?.onClose?.();
         hide(name);
         e.stopImmediatePropagation();
       }

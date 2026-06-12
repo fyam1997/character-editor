@@ -14,7 +14,6 @@ import {
 } from '../utils/generate';
 import MarkdownField from './MarkdownField.vue';
 import { useDialogStackStore } from '../stores/dialog-stack';
-import { useDialogEscape } from '../utils/use-dialog-escape';
 
 const props = defineProps<{
   visible: boolean;
@@ -176,12 +175,18 @@ watch(userPrompt, val => {
   savePromptMemory(props.field, mode.value, val);
 });
 
-useDialogEscape(
-  'GenerateDialog',
+watch(
   () => props.visible,
-  () => {
-    if (!generating.value) handleClose();
+  v => {
+    if (v) {
+      stack.show('generateDialog', {
+        onClose: () => { if (!generating.value) handleClose(); },
+      });
+    } else {
+      stack.hide('generateDialog');
+    }
   },
+  { immediate: true },
 );
 
 function handleReset() {
