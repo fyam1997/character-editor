@@ -8,6 +8,7 @@ import InfoPanel from './panels/InfoPanel.vue';
 import CharacterPanel from './panels/CharacterPanel.vue';
 import OverridePromptPanel from './panels/OverridePromptPanel.vue';
 import GreetingsPanel from './panels/GreetingsPanel.vue';
+import AssetsPanel from './panels/AssetsPanel.vue';
 import LoreBookPanel from './panels/LoreBookPanel.vue';
 import ExtensionsPanel from './panels/ExtensionsPanel.vue';
 import ChatRoom from './components/ChatRoom.vue';
@@ -114,6 +115,7 @@ async function handleExport(type: 'json' | 'png') {
                 @start-chat="onStartChat"
                 @generate="(field, index, content) => openGenerate({ field, index, content })"
               />
+              <AssetsPanel />
               <LoreBookPanel
                 @generate="(field, index, content) => openGenerate({ field, index, content })"
               />
