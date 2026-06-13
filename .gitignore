@@ -3,6 +3,7 @@ dist
 *.local
 .idea
 .todo.md
+.DS_Store
 
 # Playwright
 /*playwright*/*

@@ -126,12 +126,12 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - Load old V2 DB record → coerced to V3 → save → reload → all data intact, no loss
 - `npm run build` passes
 
-### Phase 4 — New Panel: Assets
+### Phase 4 — New Panel: Assets ✅
 
-- [ ] 4.1 Create `src/panels/AssetsPanel.vue`
-- [ ] 4.2 Integrate into `App.vue` editor column (after GreetingsPanel, before LoreBookPanel)
-- [ ] 4.3 Support: file upload (→ base64 data URL), type/name/ext editing, preview, validation (exactly one main icon) ~~CHARX `embeded://` deferred.~~
-- [ ] 4.4 Assets included in export
+- [x] 4.1 Create `src/panels/AssetsPanel.vue`
+- [x] 4.2 Integrate into `App.vue` editor column (after GreetingsPanel, before LoreBookPanel)
+- [x] 4.3 Support: file upload (→ base64 data URL), type/name/ext editing, preview, validation (exactly one main icon) ~~CHARX `embeded://` deferred.~~
+- [x] 4.4 Assets included in export
 
 **Test in this state:**
 - AssetsPanel renders in correct position in editor column
