@@ -166,43 +166,12 @@ Full migration: types, schemas, import/export, all panels, prompt assembly, AI g
 - **Sidebar**: newCard() sets creation_date
 - `npm run build` passes
 
-### Phase 7 — Lorebook Decorators Engine
+### Phase 7 — Polish & QA
 
-- [ ] 7.1 Create `src/utils/lore-decorators.ts`: parse `@@` / `@@@` decorators from content
-- [ ] 7.2 Implement all standard decorators (activation conditions, depth, role, position, etc.)
-- [ ] 7.3 Create `src/utils/lore-decorators.test.ts`: unit tests for each decorator
-
-**Test in this state:**
-- `npm run test` (vitest or jest) — all decorator unit tests pass
-- `@@activate_only_after`, `@@depth`, `@@role`, `@@position`, etc. parsed correctly from entry `content`
-- `@@@fallback` decorators resolve when standard decorator undefined
-- Decorator lines stripped before inserting content into prompt
-- Invalid/malformed decorators → gracefully ignored (no crash)
-- Edge cases: multiple decorators same line, content with no decorators, all possible decorators combined
-- `npm run build` passes
-
-### Phase 8 — Prompt Assembly & CBS
-
-- [ ] 8.1 Update `src/utils/prompt-assembly.ts`: `nickname` → `{{char}}`, use_regex matching, decorator evaluation, CBS resolution (`{{random}}`, `{{pick}}`, `{{roll}}`, etc.)
-- [ ] 8.2 Update `src/utils/generate.ts`: reflect new fields in AI generation context
-
-**Test in this state:**
-- `{{char}}` / `<char>` / `<bot>` → resolved to `data.nickname` if present, else `data.name`
-- Lore entry with `use_regex: true` → matched using `new RegExp(key, flags)` instead of `text.includes()`
-- `case_sensitive` respected in regex flags (no `i` flag when `case_sensitive: true`)
-- Decorator directives from lore content evaluated during `getLoreEntries` / prompt assembly
-- CBS tokens resolved: `{{random:option1|option2}}`, `{{pick:list|items}}`, `{{roll:1d6}}`, etc.
-- CBS comments `{{// comment}}` stripped from output
-- Generate dialog includes `nickname`, `group_only_greetings` in AI context
-- `npm run build` passes
-
-### Phase 9 — Polish & QA
-
-- [ ] 9.1 Verify: import V2 → edit all fields → export V3 → re-import → all data intact
-- [ ] 9.2 Verify: import V3 → export V2 backward compat → re-import → no data loss
-- [ ] 9.3 Verify: lorebook with decorators assembled correctly in prompts
-- [ ] 9.4 Verify: `npm run build` type-check and lint pass
-- [ ] 9.5 Update `spec_v2.md` → `spec_v3.md` (already saved locally)
+- [ ] 7.1 Verify: import V2 → edit all fields → export V3 → re-import → all data intact
+- [ ] 7.2 Verify: import V3 → export V2 backward compat → re-import → no data loss
+- [ ] 7.3 Verify: `npm run build` type-check and lint pass
+- [ ] 7.4 Update `spec_v2.md` → `spec_v3.md` (already saved locally)
 
 ## Branch Strategy
 
@@ -215,18 +184,14 @@ Each branch merges into `develop-X.Y.Z` with `--no-ff`. Never squash or rebase.
 | `feature/v3-store` | 3 — Storage & State | `stores/editor.ts`, `storage/db.ts` | ~150 lines |
 | `feature/v3-assets` | 4 — Assets Panel | `panels/AssetsPanel.vue`, `App.vue` | ~300 lines |
 | `feature/v3-panels` | 5-6 — Panel Mods | `InfoPanel.vue`, `GreetingsPanel.vue`, `EntryCard.vue`, `DateInfoPanel.vue`, `Sidebar.vue` | ~400 lines |
-| `feature/v3-lore` | 7 — Lore Decorators | `utils/lore-decorators.ts`, `utils/lore-decorators.test.ts` | ~500 lines |
-| `feature/v3-prompt` | 8 — Prompt & CBS | `utils/prompt-assembly.ts`, `utils/generate.ts` | ~300 lines |
-| `feature/v3-qa` | 9 — Polish & QA | All files, round-trip tests, lint | ~50 lines |
+| `feature/v3-qa` | 7 — Polish & QA | All files, round-trip tests, lint | ~50 lines |
 
 Dependency graph:
 
 ```
 v3-core ← v3-io ← v3-store ← v3-assets
-                                    ↕
-v3-core ← v3-lore ← v3-prompt ← v3-panels
-                                    ↕
-                                 v3-qa
+                        ↓
+                    v3-panels ← v3-qa
 ```
 
 `v3-assets` and `v3-panels` are independent after `v3-store` and can run in parallel.
