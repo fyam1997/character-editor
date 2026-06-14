@@ -22,6 +22,7 @@
   scrollbar-color: rgb(55 65 81) rgb(3 7 18);
 }
 
-.overflow-y-auto, .overflow-y-scroll {
+.overflow-y-auto,
+.overflow-y-scroll {
   scrollbar-gutter: stable;
 }

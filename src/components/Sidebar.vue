@@ -1,50 +1,61 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useEditorStore } from '../stores/editor'
-import { importCard } from '../utils/card-io'
-import type { CharacterCardV2 } from '../types'
+import { onMounted } from 'vue';
+import { useEditorStore } from '../stores/editor';
+import { importCard } from '../utils/card-io';
+import type { CharacterCardV3 } from '../types';
 
-const store = useEditorStore()
+const store = useEditorStore();
 
-const appVersion = __APP_VERSION__
+const appVersion = __APP_VERSION__;
 
-onMounted(() => store.loadCards())
-
-async function handleImport() {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.png,.json'
-  input.click()
-  input.onchange = async () => {
-    const file = input.files?.[0]
-    if (!file) return
-    try {
-      const buf = await file.arrayBuffer()
-      const { json, pngBlob } = importCard(buf)
-      const id = await store.addCard(json, pngBlob)
-      await store.setActiveCard(id!, json)
-    } catch (e) {
-      alert((e as Error)?.message ?? 'Import failed')
+onMounted(async () => {
+  await store.loadCards();
+  if (store.reopenLastSession) {
+    const lastId = store.getLastActiveCardId();
+    if (lastId != null) {
+      const card = store.cards.find(c => c.id === lastId);
+      if (card) {
+        await store.setActiveCard(lastId, card.cardJson);
+      }
     }
   }
+});
+
+async function handleImport() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.png,.json';
+  input.click();
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      const buf = await file.arrayBuffer();
+      const { json, pngBlob } = importCard(buf);
+      const id = await store.addCard(json, pngBlob);
+      await store.setActiveCard(id!, json);
+    } catch (e) {
+      alert((e as Error)?.message ?? 'Import failed');
+    }
+  };
 }
 
 async function selectCard(id: number) {
-  await store.flushSave()
-  const record = await store.getCard(id)
+  await store.flushSave();
+  const record = await store.getCard(id);
   if (record) {
-    await store.setActiveCard(id, record.cardJson)
+    await store.setActiveCard(id, record.cardJson);
   }
 }
 
 async function removeCard(id: number) {
-  await store.deleteCard(id)
+  await store.deleteCard(id);
 }
 
 async function newCard() {
-  const empty: CharacterCardV2 = {
-    spec: 'chara_card_v2',
-    spec_version: '2.0',
+  const empty: CharacterCardV3 = {
+    spec: 'chara_card_v3',
+    spec_version: '3.0',
     data: {
       name: '',
       description: '',
@@ -56,15 +67,16 @@ async function newCard() {
       system_prompt: '',
       post_history_instructions: '',
       alternate_greetings: [''],
+      group_only_greetings: [],
       tags: [],
       creator: '',
       character_version: '',
       extensions: {},
     },
-  }
-  const id = await store.addCard(empty)
+  };
+  const id = await store.addCard(empty);
   if (id != null) {
-    await store.setActiveCard(id, empty)
+    await store.setActiveCard(id, empty);
   }
 }
 </script>
@@ -105,10 +117,7 @@ async function newCard() {
         @click="selectCard(card.id!)"
       >
         <span class="truncate flex-1">{{ card.name || 'Untitled' }}</span>
-        <button
-          class="text-gray-500 hover:text-red-400 text-xs"
-          @click.stop="removeCard(card.id!)"
-        >
+        <button class="text-gray-500 hover:text-red-400 text-xs" @click.stop="removeCard(card.id!)">
           ✕
         </button>
       </div>

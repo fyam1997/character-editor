@@ -1,24 +1,25 @@
 <script setup lang="ts">
-import { useEditorStore } from '../stores/editor'
-import CollapsibleSection from './CollapsibleSection.vue'
+import { useEditorStore } from '../stores/editor';
+import CollapsibleSection from './CollapsibleSection.vue';
 
-const store = useEditorStore()
+const store = useEditorStore();
 
 function autoResize(el: Event) {
-  const ta = el.target as HTMLTextAreaElement
-  ta.style.height = 'auto'
-  ta.style.height = ta.scrollHeight + 'px'
+  const ta = el.target as HTMLTextAreaElement;
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
 }
 
 const vAutoResize = {
   mounted: (el: HTMLTextAreaElement) => {
-    el.style.height = 'auto'
-    el.style.height = el.scrollHeight + 'px'
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
   },
-}
+};
 
 function resetMockText() {
-  store.mockInspectText = 'Hello there! I am a mock AI response, streaming word by word to simulate a real API call. You can configure this text to test your streaming UI without hitting any external service.'
+  store.mockInspectText =
+    'Hello there! I am a mock AI response, streaming word by word to simulate a real API call. You can configure this text to test your streaming UI without hitting any external service.';
 }
 </script>
 
@@ -93,10 +94,16 @@ function resetMockText() {
           <input type="checkbox" v-model="store.mockInspect" />
           Mock Response
         </label>
+        <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+          <input type="checkbox" v-model="store.reopenLastSession" />
+          Reopen Last Session
+        </label>
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="text-xs text-gray-400">Mock Response Text</label>
-            <button class="text-xs text-gray-500 hover:text-gray-300" @click="resetMockText">↺ Reset</button>
+            <button class="text-xs text-gray-500 hover:text-gray-300" @click="resetMockText">
+              ↺ Reset
+            </button>
           </div>
           <textarea
             v-model="store.mockInspectText"

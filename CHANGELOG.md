@@ -1,5 +1,92 @@
 # Changelog
 
+## [0.3.0] — 2026-06-14
+
+### Added
+- `AssetsPanel.vue`: manage `assets[]` array with type/name/ext editing, file upload → base64 data URL, image preview, and validation (exactly one `icon` with `name === 'main'`)
+- `InfoPanel.vue`: `nickname` field, `source` read-only chip list, inline creation/modification date display
+- `GreetingsPanel.vue`: collapsible `group_only_greetings` subsection
+- `EntryCard.vue`: `use_regex` toggle; `constant` promoted from advanced to basic section
+
+### Removed
+- Multilingual `creator_notes_multilingual` — simplified back to single `creator_notes` MarkdownField
+- Separate `DateInfoPanel.vue` — dates moved inline into InfoPanel
+
+### Changed
+- Migrate core types to V3: `CharacterCardV3`, `Lorebook`, `LorebookEntry`, `Asset`
+- Storage layer: auto-set `creation_date` (Unix seconds) on new card creation
+- Storage layer: update `modification_date` on save/export
+- Bump Dexie DB version to 3 for V3 schema documentation
+- Update Zod schemas for V3: `cardV3Schema`, `cardDataV3Schema`, `lorebookSchema`, `lorebookExportSchema`
+- Create `coerceV2toV3()` utility for backward-compatible V2→V3 upgrade
+- Widen `id` field in lore entries to accept `number | string`
+- Widen `prepareExport`, `assembleApiMessages`, `assembleGeneratePrompt` to accept V2 or V3 cards
+- `png.ts`: prefer `ccv3` chunk over `chara` chunk on PNG import
+- `png.ts`: write `ccv3` chunk for V3 cards on PNG export
+- `card-io.ts`: `importCard()` coerces V2→V3 at import time via `coerceV2toV3()`
+- `card-io.ts`: `prepareExport()` preserves V3 greeting structure (no shift)
+
+
+### Added
+- Debug checkbox "Reopen Last Session" — when enabled, auto-selects the last
+  active chat session for the current card on entry
+- Generate dialog: loading indicator (animated dots) in result area while
+  generating, matching the chat room style
+
+### Changed
+- MarkdownField: clicking the rendered preview places the cursor at the clicked
+  line/column instead of jumping to the end of text
+- MarkdownField: undo/redo history is now preserved across editing sessions for
+  each field (textarea kept alive with `v-show` instead of `v-if`/`v-else`)
+- Generate dialog: `theme` and `outputInstruction` are now standalone system
+  messages instead of being concatenated into the main prompt
+
+### Fixed
+- MarkdownField: `startEdit` now uses DOM tree walker to correctly map clicks in
+  rendered preview to source cursor position, handling headings, lists
+  (including nested/indented), code blocks, and blockquotes
+- MarkdownField: clicks past the end of a rendered line now place the cursor at
+  the line end instead of the line start (handle `caretRangeFromPoint` offset 0
+  quirk via bounding rect measurement)
+- Escape in inspect dialog now only closes the inspect dialog, not parent
+- Escape works regardless of focus state (document-level listener)
+
+### Refactored
+- MarkdownField: extracted repeated inline markdown token scanning into
+  data-driven `TOKEN_PATTERNS` + `scanToken` helper; extracted
+  `closestTextNodeByY` helper; net -62 lines, zero functional change
+- Inspect dialog: moved from inline usage in GenerateDialog/ChatRoom to
+  centralized DialogStack Pinia store + Dialogs.vue component
+- Dialog stack: Pinia store (`dialogStack`) manages visibility stack
+  and centralized Escape keydown handler; only the topmost dialog closes
+- GenerateDialog now also uses the same store for Escape handling
+- Removed old standalone `utils/dialog-stack.ts` and `use-dialog-escape.ts`
+- InspectDialog is now a pure presentational component with no stack logic
+
+## [0.3.0] — 2026-06-11
+
+### Added
+- Extension editor: type-aware key-value table with dynamic add/remove rows,
+  JSON modal for bulk editing, and proper null/undefined handling
+- Inspect dialog now editable with a textarea and Confirm button — edit the
+  request payload and confirm to call the API with your changes
+- Generate dialog: loading indicator (animated dots) in result area while
+  generating, matching the chat room style
+
+### Changed
+- Generate dialog: `theme` and `outputInstruction` are now standalone system
+  messages instead of being concatenated into the main prompt
+
+### Fixed
+- Inspect dialog Confirm now respects the Mock Response toggle, routing to mock
+  stream when enabled instead of calling the real API
+- Extension row disappearing on input and focus loss during keystroke
+- New extension row being immediately discarded after creation
+
+### Changed
+- Moved `plan-0.3.0.md` into `docs/plans/`, added plan and spec references to
+  AGENTS.md, cleaned up stale CONTEXT.md and ADR files
+
 ## [0.2.6] — 2026-06-08
 
 ### Added
