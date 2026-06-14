@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.0] — 2026-06-12
+## [0.3.0] — 2026-06-14
 
 ### Added
 - `AssetsPanel.vue`: manage `assets[]` array with type/name/ext editing, file upload → base64 data URL, image preview, and validation (exactly one `icon` with `name === 'main'`)
